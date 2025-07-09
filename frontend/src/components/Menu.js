@@ -2,12 +2,12 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { ChevronDown } from "lucide-react"; // icon mũi tên v
-
+import { backendUrl } from "../context/ShopContext"; // import backend URL từ context
 export default function Menu() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get(`${backendUrl}/api/categories`)
+        axios.get(`${backendUrl}/api/categories`)
       .then(res => setCategories(res.data))
       .catch(err => console.error("❌ Lỗi khi load danh mục:", err));
   }, []);
