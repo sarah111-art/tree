@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../api';
 import { backendUrl } from '../context/ShopContext'; // Import backend URL from context
 export default function CategorySlider() {
   const [categories, setCategories] = useState([]);

@@ -1,7 +1,7 @@
 // ✅ CONTROLLER: controllers/momoController.js
 
 import crypto from 'crypto';
-import axios from 'axios';
+import axios from '../api';
 import dotenv from 'dotenv';
 dotenv.config();
 

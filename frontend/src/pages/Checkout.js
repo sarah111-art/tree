@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { backendUrl, useShop } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 

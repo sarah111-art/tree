@@ -20,3 +20,19 @@ export const authenticate = (req, res, next) => {
     return res.status(403).json({ message: 'Token không hợp lệ hoặc đã hết hạn' });
   }
 };
+// middleware auth.js
+export const requireAdmin = (req, res, next) => {
+  const auth = req.headers.authorization?.split(' ')[1];
+  if (!auth) return res.status(401).json({ message: 'Không có token' });
+
+  try {
+    const data = jwt.verify(auth, process.env.JWT_SECRET);
+    req.user = data;
+    if (!['manager', 'staff'].includes(data.role)) {
+      return res.status(403).json({ message: 'Không đủ quyền' });
+    }
+    next();
+  } catch {
+    res.status(401).json({ message: 'Token không hợp lệ' });
+  }
+};

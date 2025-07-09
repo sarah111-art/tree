@@ -1,6 +1,6 @@
 // src/pages/CamNangPage.jsx
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axios from '../api';
 import { backendUrl } from '../context/ShopContext'; // hoặc từ App nếu bạn export backendUrl ở đó
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
