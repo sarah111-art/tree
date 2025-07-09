@@ -1,4 +1,3 @@
-import axios from '../api';
 import { backendUrl } from '../src/App';
 
 // Kéo token từ localStorage
