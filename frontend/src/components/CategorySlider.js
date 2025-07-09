@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-
+import { backendUrl } from '../context/ShopContext'; // Import backend URL from context
 export default function CategorySlider() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get('http://localhost:5001/api/categories'); // URL backend của bạn
-        setCategories(res.data); // Giả sử API trả về mảng [{ name, slug, image, count }]
+      const res = await axios.get(`${backendUrl}/api/categories`);   
+       setCategories(res.data); // Giả sử API trả về mảng [{ name, slug, image, count }]
       } catch (err) {
         console.error('❌ Lỗi khi tải danh mục:', err.message);
       }
