@@ -10,7 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-       const res = await axios.post(`${backendUrl}/api/users/login`  , {
+       const res = await axios.post(`${backendUrl}/api/users/login` , {
         email,
         password,
       });
