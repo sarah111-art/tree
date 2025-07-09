@@ -1,6 +1,6 @@
 // src/page/Warehouse/WarehouseList.jsx
 import React, { useEffect, useState } from 'react';
-import axios from '../../api';
+import api from '../api';
 import { backendUrl } from '../../App';
 import { FiDownload } from 'react-icons/fi';
 

@@ -1,6 +1,6 @@
 // src/pages/Banner/BannerDashboard.jsx
 import React, { useEffect, useState } from 'react';
-import axios from '../../api';
+import api from '../api';
 import { backendUrl } from '../../App';
 import dayjs from 'dayjs';
 

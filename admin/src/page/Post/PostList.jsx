@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../../api';
+import api from '../api';
 import { backendUrl } from '../../App';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';

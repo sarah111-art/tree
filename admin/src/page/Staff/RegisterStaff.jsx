@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from '../../api';
+import api from '../api';
 import { backendUrl } from '../../App';
 
 export default function RegisterStaff() {
