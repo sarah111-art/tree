@@ -7,7 +7,7 @@ export default function Menu() {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5001/api/categories")
+    axios.get(`${backendUrl}/api/categories`)
       .then(res => setCategories(res.data))
       .catch(err => console.error("❌ Lỗi khi load danh mục:", err));
   }, []);
