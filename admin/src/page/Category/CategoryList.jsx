@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import axios from 'axios';
 import { backendUrl } from '../../App';
 
 const CategoryList = () => {
@@ -30,7 +30,7 @@ const CategoryList = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get(`${backendUrl}/api/categories`);
+      const res = await axios.get(`${backendUrl}/api/categories`);
       setCategories(res.data);
     } catch (err) {
       console.error('Lỗi khi load categories:', err.message);
@@ -61,11 +61,11 @@ const CategoryList = () => {
     };
     try {
       if (editing) {
-        await api.put(`${backendUrl}/api/categories/${editing._id}`, payload);
+        await axios.put(`${backendUrl}/api/categories/${editing._id}`, payload);
         setEditing(null);
         showMessage('✅ Cập nhật danh mục thành công');
       } else {
-        await api.post(`${backendUrl}/api/categories`, payload);
+        await axios.post(`${backendUrl}/api/categories`, payload);
         showMessage('✅ Thêm danh mục thành công');
       }
       setForm({
@@ -104,7 +104,7 @@ const CategoryList = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Bạn có chắc muốn xoá danh mục này?')) {
       try {
-        await api.delete(`${backendUrl}/api/categories/${id}`);
+        await axios.delete(`${backendUrl}/api/categories/${id}`);
         fetchCategories();
         showMessage('🗑️ Xoá danh mục thành công');
       } catch (err) {
@@ -122,7 +122,7 @@ const CategoryList = () => {
     formData.append('image', file);
 
     try {
-      const res = await api.post(`${backendUrl}/api/upload`, formData, {
+      const res = await axios.post(`${backendUrl}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setForm({ ...form, image: res.data.url });

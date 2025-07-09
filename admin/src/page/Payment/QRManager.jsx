@@ -1,6 +1,6 @@
 // src/pages/Admin/QRManager.jsx
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import axios from 'axios';
 import { backendUrl } from '../../App';
 
 export default function QRManager() {
@@ -10,7 +10,7 @@ export default function QRManager() {
   const [preview, setPreview] = useState('');
 
   const fetchQR = async () => {
-    const res = await api.get(`${backendUrl}/api/qr`);
+    const res = await axios.get(`${backendUrl}/api/qr`);
     setQrs(res.data);
   };
 
@@ -21,13 +21,13 @@ export default function QRManager() {
     const formData = new FormData();
     formData.append('image', file);
 
-    const res = await api.post(`${backendUrl}/api/upload`, formData);
+    const res = await axios.post(`${backendUrl}/api/upload`, formData);
     setImage(res.data.url);
     setPreview(res.data.url);
   };
 
   const handleSubmit = async () => {
-    await api.post(`${backendUrl}/api/qr`, { type, imageUrl: image });
+    await axios.post(`${backendUrl}/api/qr`, { type, imageUrl: image });
     alert('✅ Mã QR đã cập nhật!');
     fetchQR();
     setImage('');

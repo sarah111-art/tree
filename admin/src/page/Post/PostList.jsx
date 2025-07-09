@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import axios from 'axios';
 import { backendUrl } from '../../App';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -23,12 +23,12 @@ export default function PostList() {
   });
 
   const fetchPosts = async () => {
-    const res = await api.get(`${backendUrl}/api/posts`);
+    const res = await axios.get(`${backendUrl}/api/posts`);
     setPosts(res.data);
   };
 
   const fetchCategories = async () => {
-    const res = await api.get(`${backendUrl}/api/categories`);
+    const res = await axios.get(`${backendUrl}/api/categories`);
     setCategories(res.data);
   };
 
@@ -41,7 +41,7 @@ const handleUpload = async () => {
   formData.append('image', file); // ← PHẢI là 'image'
 
   try {
-    const res = await api.post(`${backendUrl}/api/upload`, formData, {
+    const res = await axios.post(`${backendUrl}/api/upload`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return res.data.url;
@@ -70,10 +70,10 @@ const handleUpload = async () => {
 
     try {
       if (editingId) {
-        await api.put(`${backendUrl}/api/posts/${editingId}`, payload);
+        await axios.put(`${backendUrl}/api/posts/${editingId}`, payload);
         alert('✅ Cập nhật bài viết thành công');
       } else {
-        await api.post(`${backendUrl}/api/posts`, payload);
+        await axios.post(`${backendUrl}/api/posts`, payload);
         alert('✅ Thêm bài viết thành công');
       }
       resetForm();
@@ -115,7 +115,7 @@ const handleUpload = async () => {
 
   const deletePost = async (id) => {
     if (window.confirm('Bạn có chắc muốn xoá bài viết này?')) {
-      await api.delete(`${backendUrl}/api/posts/${id}`);
+      await axios.delete(`${backendUrl}/api/posts/${id}`);
       fetchPosts();
     }
   };

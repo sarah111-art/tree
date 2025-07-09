@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import axios from 'axios';
 import { backendUrl } from '../../App';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -30,8 +30,8 @@ const EditProduct = () => {
     const fetchData = async () => {
       try {
         const [catRes, productRes] = await Promise.all([
-          api.get(`${backendUrl}/api/categories`),
-          api.get(`${backendUrl}/api/products/${id}`)
+          axios.get(`${backendUrl}/api/categories`),
+          axios.get(`${backendUrl}/api/products/${id}`)
         ]);
 
         setCategories(catRes.data);
@@ -59,7 +59,7 @@ const EditProduct = () => {
     formData.append('image', file);
 
     try {
-      const res = await api.post(`${backendUrl}/api/upload`, formData, {
+      const res = await axios.post(`${backendUrl}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setForm((prev) => ({ ...prev, image: res.data.url }));
@@ -77,7 +77,7 @@ const handleAddSubImages = async (e) => {
   });
 
   try {
-    const res = await api.post(`${backendUrl}/api/upload/multiple`, formData, {
+    const res = await axios.post(`${backendUrl}/api/upload/multiple`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
@@ -128,7 +128,7 @@ const handleAddSubImages = async (e) => {
     };
 
     try {
-      await api.put(`${backendUrl}/api/products/${id}`, updatedData);
+      await axios.put(`${backendUrl}/api/products/${id}`, updatedData);
       alert("✅ Cập nhật sản phẩm thành công!");
       navigate('/admin/products');
     } catch (err) {

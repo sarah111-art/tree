@@ -1,6 +1,6 @@
 // src/page/Warehouse/WarehouseList.jsx
 import React, { useEffect, useState } from 'react';
-import api from '../../api';
+import axios from 'axios';
 import { backendUrl } from '../../App';
 import { FiDownload } from 'react-icons/fi';
 
@@ -16,7 +16,7 @@ const Warehouse= () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await api.get(`${backendUrl}/api/products`);
+      const res = await axios.get(`${backendUrl}/api/products`);
       setProducts(res.data);
     } catch (err) {
       console.error('Lỗi khi load sản phẩm:', err);
@@ -25,7 +25,7 @@ const Warehouse= () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get(`${backendUrl}/api/categories`);
+      const res = await axios.get(`${backendUrl}/api/categories`);
       setCategories(res.data);
     } catch (err) {
       console.error('Lỗi khi load danh mục:', err);
@@ -38,7 +38,7 @@ const Warehouse= () => {
     const newQty = product.quantity + delta;
     if (newQty < 0) return;
     try {
-      await api.put(`${backendUrl}/api/products/${id}`, { quantity: newQty });
+      await axios.put(`${backendUrl}/api/products/${id}`, { quantity: newQty });
       fetchProducts();
     } catch (err) {
       console.error('Lỗi khi cập nhật tồn kho:', err);
@@ -47,7 +47,7 @@ const Warehouse= () => {
 
   const toggleStatus = async (id, currentStatus) => {
     try {
-      await api.put(`${backendUrl}/api/products/${id}`, {
+      await axios.put(`${backendUrl}/api/products/${id}`, {
         status: currentStatus === 'active' ? 'inactive' : 'active',
       });
       fetchProducts();
