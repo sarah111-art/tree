@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../api';
 import { useNavigate } from 'react-router-dom';
 import { backendUrl } from '../App'; // Import backend URL from context
 export default function Login() {
@@ -10,7 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-       const res = await axios.post(`${backendUrl}/api/users/login` , {
+       const res = await api.post(`${backendUrl}/api/users/login` , {
         email,
         password,
       });

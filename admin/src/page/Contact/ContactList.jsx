@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 import dayjs from 'dayjs';
 
@@ -9,12 +9,12 @@ export default function ContactList() {
   const [replyMessage, setReplyMessage] = useState('');
 
   const fetchContacts = async () => {
-    const res = await axios.get(`${backendUrl}/api/contacts`);
+    const res = await api.get(`${backendUrl}/api/contacts`);
     setContacts(res.data);
   };
 
   const updateStatus = async (id, status) => {
-    await axios.put(`${backendUrl}/api/contacts/${id}`, { status });
+    await api.put(`${backendUrl}/api/contacts/${id}`, { status });
     fetchContacts();
   };
 
@@ -25,7 +25,7 @@ export default function ContactList() {
     }
 
     try {
-      await axios.post(`${backendUrl}/api/contacts/${contactId}/reply`, {
+      await api.post(`${backendUrl}/api/contacts/${contactId}/reply`, {
         message: replyMessage,
       });
 

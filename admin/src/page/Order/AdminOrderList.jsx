@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 
 export default function AdminOrderList() {
@@ -7,14 +7,14 @@ export default function AdminOrderList() {
   const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
-    axios.get(`${backendUrl}/api/orders`)
+    api.get(`${backendUrl}/api/orders`)
       .then(res => setOrders(res.data))
       .catch(err => console.error('Lỗi tải đơn hàng:', err));
   }, []);
 
   const handleStatusChange = async (id, status) => {
     try {
-      const res = await axios.put(`${backendUrl}/api/orders/${id}/status`, { status });
+      const res = await api.put(`${backendUrl}/api/orders/${id}/status`, { status });
       setOrders(orders.map(order => order._id === id ? res.data : order));
     } catch (err) {
       alert('❌ Lỗi cập nhật trạng thái!');

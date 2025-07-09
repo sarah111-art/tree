@@ -1,6 +1,6 @@
 // src/page/Staff/ActivityLog.jsx
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import dayjs from 'dayjs';
 import { backendUrl } from '../../App';
 
@@ -13,7 +13,7 @@ export default function ActivityLog() {
 
   const fetchLogs = async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/logs`);
+      const res = await api.get(`${backendUrl}/api/logs`);
       setLogs(res.data);
     } catch (err) {
       console.error('Lỗi khi lấy log:', err);

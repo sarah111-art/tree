@@ -38,7 +38,7 @@ const Warehouse= () => {
     const newQty = product.quantity + delta;
     if (newQty < 0) return;
     try {
-      await axios.put(`${backendUrl}/api/products/${id}`, { quantity: newQty });
+      await api.put(`${backendUrl}/api/products/${id}`, { quantity: newQty });
       fetchProducts();
     } catch (err) {
       console.error('Lỗi khi cập nhật tồn kho:', err);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 
 export default function RegisterStaff() {
@@ -17,7 +17,7 @@ export default function RegisterStaff() {
     setMessage('');
     setLoading(true);
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `${backendUrl}/api/admin/register`,
         { ...form, role: 'staff' },
         {

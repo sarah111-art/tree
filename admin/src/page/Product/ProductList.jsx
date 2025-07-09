@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { Link } from 'react-router-dom';
 import { backendUrl } from '../../App';
 
@@ -9,7 +9,7 @@ const ProductList = () => {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/products`);
+      const res = await api.get(`${backendUrl}/api/products`);
       setProducts(res.data || []);
     } catch (err) {
       console.error("❌ Lỗi khi load sản phẩm:", err.message);
@@ -19,7 +19,7 @@ const ProductList = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
       try {
-        await axios.delete(`${backendUrl}/api/products/${id}`);
+        await api.delete(`${backendUrl}/api/products/${id}`);
         fetchProducts();
       } catch (err) {
         console.error("❌ Xoá thất bại:", err.message);

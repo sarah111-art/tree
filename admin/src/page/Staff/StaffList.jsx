@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 
 export default function StaffList() {
@@ -12,7 +12,7 @@ export default function StaffList() {
   useEffect(() => {
     const fetchStaffs = async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/admin/staffs`, {
+        const res = await api.get(`${backendUrl}/api/admin/staffs`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

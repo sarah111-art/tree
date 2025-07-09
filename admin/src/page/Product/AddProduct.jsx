@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +26,7 @@ const AddProduct = () => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get(`${backendUrl}/api/categories`)
+    api.get(`${backendUrl}/api/categories`)
       .then(res => setCategories(res.data))
       .catch(err => console.error("Không thể load danh mục:", err));
   }, []);
@@ -39,7 +39,7 @@ const AddProduct = () => {
     formData.append('image', file);
 
     try {
-      const res = await axios.post(`${backendUrl}/api/upload`, formData, {
+      const res = await api.post(`${backendUrl}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -77,7 +77,7 @@ const AddProduct = () => {
     }
 
     try {
-      await axios.post(`${backendUrl}/api/products`, payload);
+      await api.post(`${backendUrl}/api/products`, payload);
       alert("✅ Thêm sản phẩm thành công!");
       navigate('/admin/products');
     } catch (err) {

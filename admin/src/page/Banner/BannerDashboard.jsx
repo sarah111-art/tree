@@ -1,6 +1,6 @@
 // src/pages/Banner/BannerDashboard.jsx
 import React, { useEffect, useState } from 'react';
-import api from '../api';
+import api from '../../api';
 import { backendUrl } from '../../App';
 import dayjs from 'dayjs';
 
@@ -15,7 +15,7 @@ export default function BannerDashboard() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/banners`);
+      const res = await api.get(`${backendUrl}/api/banners`);
       setBanners(res.data);
     } catch (err) {
       console.error('Lỗi tải banner:', err);
