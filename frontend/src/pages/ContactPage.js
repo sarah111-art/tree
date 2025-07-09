@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from '../api';
+import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
 
 export default function ContactPage() {

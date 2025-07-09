@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import axios from '../api';
+import axios from 'axios';
 import { backendUrl, useShop } from '../context/ShopContext';
 import ProductCard from '../components/ProductCard';
 

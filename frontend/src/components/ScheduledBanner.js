@@ -1,6 +1,6 @@
 // src/components/ScheduledBanner.jsx
 import React, { useEffect, useState } from 'react';
-import axios from '../api';
+import axios from 'axios';
 import { backendUrl } from '../App';
 
 export default function ScheduledBanner() {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from '../api';
+import axios from 'axios';
 import ProductCard from './ProductCard'; 
 import { backendUrl } from '../context/ShopContext';
 

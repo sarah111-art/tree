@@ -1,7 +1,7 @@
 // src/pages/PostDetail.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from '../api';
+import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
 
 export default function PostDetail() {

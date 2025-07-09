@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useShop } from '../context/ShopContext';
-import axios from '../api';
+import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
 import { motion } from 'framer-motion';
 import Slider from '../components/Slider';
