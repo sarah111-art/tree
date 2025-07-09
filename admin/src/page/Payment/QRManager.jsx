@@ -1,6 +1,6 @@
 // src/pages/Admin/QRManager.jsx
 import React, { useEffect, useState } from 'react';
-import axios from '../api';
+import axios from '../../api';
 import { backendUrl } from '../../App';
 
 export default function QRManager() {

@@ -1,6 +1,6 @@
 // src/page/Staff/ActivityLog.jsx
 import React, { useEffect, useState } from 'react';
-import axios from '../api';
+import axios from '../../api';
 import dayjs from 'dayjs';
 import { backendUrl } from '../../App';
 
