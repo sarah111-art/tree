@@ -22,6 +22,7 @@ export default function Home() {
   const [topRated, setTopRated] = useState([]);
   const [posts, setPosts] = useState([]);
   const normalize = (str) => str.toLowerCase().replace(/\s+/g, '-');
+  const [loading,setLoading] = useState(true);
 
   const filteredProducts = category
     ? products.filter((p) => normalize(p.category) === category)
@@ -40,6 +41,7 @@ export default function Home() {
         setBestSellers(bestRes.data);
         setNewest(newRes.data);
         setTopRated(topRes.data);
+        setLoading(false);
       } catch (err) {
         console.error('❌ Lỗi khi tải sản phẩm đặc biệt:', err.message);
       }
@@ -56,7 +58,12 @@ export default function Home() {
     axios.get(`${backendUrl}/api/posts`)
       .then((res) => setPosts(res.data))
       .catch((err) => console.error('❌ Lỗi khi tải bài viết:', err.message));
+      
   }, []);
+
+  if(loading){
+    return <div className='flex items-center justify-center min-h-screen'><img src="/loading.gif" alt="Loading..." className='w-16 h-16 animate-spin' /></div>
+  }
   return (
     <div>
       <div>
