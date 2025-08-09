@@ -13,7 +13,7 @@ export default function ActivityLog() {
 
   const fetchLogs = async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/logs`);
+      const res = await axios.get(`${backendUrl}/api/admin/activity-logs`);
       setLogs(res.data);
     } catch (err) {
       console.error('Lỗi khi lấy log:', err);

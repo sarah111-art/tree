@@ -12,6 +12,7 @@ import bannerRouter from './routes/bannerRouter.js'
 import postRouter from './routes/postRouter.js'
 import contactRouter from './routes/contactRouter.js'
 import qrRouter from './routes/qrRouter.js'
+import activityRouter from './routes/activityLogRouter.js'
 dotenv.config()
 
 const app = express()
@@ -42,7 +43,8 @@ app.use('/api/posts', postRouter);
 app.use('/api/contacts', contactRouter);
 //qr
 app.use('/api/qr', qrRouter);
-
+//ativity
+app.use('/api', activityRouter);  
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
     app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`))

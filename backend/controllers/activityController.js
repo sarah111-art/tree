@@ -1,4 +1,4 @@
-import ActivityLog from '../models/activityLogModel.js';
+import ActivityLog from "../models/activityLogModel.js"; 
 
 export const getActivityLogs = async (req, res) => {
   try {

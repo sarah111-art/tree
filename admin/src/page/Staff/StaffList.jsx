@@ -7,7 +7,7 @@ export default function StaffList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('token');
 
   useEffect(() => {
     const fetchStaffs = async () => {

@@ -24,7 +24,6 @@ import PostList from './page/Post/PostList';
 import ActivityLog from './page/Staff/ActivityLog';
 import ContactList from './page/Contact/ContactList';
 import QRManager from './page/Payment/QRManager';
-
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = '$';
 

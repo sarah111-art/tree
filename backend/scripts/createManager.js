@@ -20,7 +20,7 @@ async function createManager() {
     process.exit(0);
   }
 
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const hashedPassword = await bcrypt.hash('A!dmin_2025$bonsai', 10);
   const manager = new User({
     name: 'Quản trị viên',
     email: 'admin@bonsai.com',

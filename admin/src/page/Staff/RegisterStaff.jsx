@@ -7,7 +7,7 @@ export default function RegisterStaff() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const token = localStorage.getItem('adminToken'); // ✅ giống login
+  const token = localStorage.getItem('token'); // ✅ giống login
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });

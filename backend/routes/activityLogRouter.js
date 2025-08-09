@@ -1,7 +1,10 @@
 import express from 'express';
-import { getActivityLogs } from '../controllers/activityLogController.js';
-const router = express.Router();
+import { getActivityLogs } from '../controllers/activityController.js';
+import { authenticate } from '../middlewares/auth.js';
+import { authorizeRole } from '../middlewares/authorizeRole.js';
+const activityRouter = express.Router();
 
-router.get('/', getActivityLogs);
 
-export default router;
+activityRouter.get('/admin/activity-logs', authenticate, authorizeRole('manager'), getActivityLogs);
+
+export default activityRouter;

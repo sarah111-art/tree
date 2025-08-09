@@ -14,13 +14,16 @@ export default function Login() {
         email,
         password,
       });
-
+      console.log(res.data); 
       const { token, user } = res.data;
 
       if (user.role === 'manager' || user.role === 'staff') {
-        localStorage.setItem('adminToken', token);
+        localStorage.setItem('token', token);
         localStorage.setItem('adminInfo', JSON.stringify(user));
         navigate('/admin/dashboard');
+        console
+        
+        .log('Đã chuyển hướng');
       } else {
         alert('Bạn không có quyền truy cập trang admin');
       }
