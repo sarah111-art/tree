@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useShop } from '../context/ShopContext';
 import axios from 'axios';
@@ -11,11 +11,11 @@ import ProductCard from '../components/ProductCard';
 import ProductList from '../components/ProductList';
 import SectionBlock from '../components/SectionBlock';
 import QuickView from '../components/QuickView';
-import { HeartHandshake, Phone, Truck } from 'lucide-react';
+import { HeartHandshake, Phone, Truck, User, Package, ShoppingCart, Heart } from 'lucide-react';
 
 export default function Home() {
   const { category } = useParams();
-  const { products } = useShop();
+  const { products, token, user } = useShop();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [bestSellers, setBestSellers] = useState([]);
   const [newest, setNewest] = useState([]);
@@ -72,22 +72,38 @@ export default function Home() {
             {category ? `Danh mục: ${category.replace('-', ' ')}` : 'Bonsai Việt - Trang chủ'}
           </title>
         </Helmet>
-          <div className="bg-green-50 py-3 border-t border-b border-green-200">
-            <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 text-center text-sm sm:text-base">
-              <div className="flex flex-col items-center">
-                <Phone className="w-8 h-8 mb-1" />
-                <p className="text-green-800 font-semibold">Tư vấn tận tâm</p>
-                <p className="text-gray-500 text-xs">Hỗ trợ chọn cây phù hợp</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <Truck alt="Giao nhanh" className="w-8 h-8 mb-1" />
-                <p className="text-green-800 font-semibold">Giao hàng nhanh</p>
-                <p className="text-gray-500 text-xs">Toàn quốc trong 2-3 ngày</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <HeartHandshake className="w-8 h-8 mb-1" />
-                <p className="text-green-800 font-semibold">Hỗ trợ trọn đời</p>
-                <p className="text-gray-500 text-xs">Tư vấn chăm cây miễn phí</p>
+          <div className="bg-gradient-to-r from-green-50 via-green-100 to-green-50 py-8 border-t border-b border-green-200">
+            <div className="container mx-auto px-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div className="group">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100">
+                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Phone className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-green-800 font-bold text-lg mb-2">Tư vấn tận tâm</h3>
+                    <p className="text-gray-600 text-sm">Hỗ trợ chọn cây phù hợp với không gian phong thủy</p>
+                  </div>
+                </div>
+                
+                <div className="group">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <Truck className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-green-800 font-bold text-lg mb-2">Giao hàng nhanh</h3>
+                    <p className="text-gray-600 text-sm">Toàn quốc trong 2-3 ngày với đóng gói cẩn thận</p>
+                  </div>
+                </div>
+                
+                <div className="group">
+                  <div className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100">
+                    <div className="w-16 h-16 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                      <HeartHandshake className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-green-800 font-bold text-lg mb-2">Hỗ trợ trọn đời</h3>
+                    <p className="text-gray-600 text-sm">Tư vấn chăm cây miễn phí và bảo hành chất lượng</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -113,6 +129,53 @@ export default function Home() {
             <SectionBlock title="🔥 Bán chạy nhất" products={bestSellers} onQuickView={handleQuickView} />
             <SectionBlock title="🆕 Sản phẩm mới" products={newest} onQuickView={handleQuickView} />
             <SectionBlock title="⭐ Top xếp hạng" products={topRated} onQuickView={handleQuickView} />
+            
+            {/* Section Tài khoản của tôi - chỉ hiển thị khi đã đăng nhập */}
+            {token && (
+              <div className="mt-12">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-2xl p-8 border border-green-200">
+                  <div className="text-center mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">👤 Tài khoản của tôi</h2>
+                    <p className="text-gray-600">Xin chào, {user?.name || user?.phone}!</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Link 
+                      to="/don-hang"
+                      className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100 group"
+                    >
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
+                        <Package className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <h3 className="text-center font-semibold text-gray-800 mb-2">Đơn hàng của tôi</h3>
+                      <p className="text-center text-sm text-gray-600">Xem tất cả đơn hàng và theo dõi trạng thái</p>
+                    </Link>
+                    
+                    <Link 
+                      to="/yeu-thich"
+                      className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100 group"
+                    >
+                      <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-pink-200 transition-colors">
+                        <Heart className="w-6 h-6 text-pink-600" />
+                      </div>
+                      <h3 className="text-center font-semibold text-gray-800 mb-2">Sản phẩm yêu thích</h3>
+                      <p className="text-center text-sm text-gray-600">Xem danh sách sản phẩm đã yêu thích</p>
+                    </Link>
+                    
+                    <Link 
+                      to="/gio-hang"
+                      className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100 group"
+                    >
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors">
+                        <ShoppingCart className="w-6 h-6 text-green-600" />
+                      </div>
+                      <h3 className="text-center font-semibold text-gray-800 mb-2">Giỏ hàng</h3>
+                      <p className="text-center text-sm text-gray-600">Xem và quản lý giỏ hàng của bạn</p>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <>

@@ -11,7 +11,7 @@ export default function ProductDetail() {
   const [star, setStar] = useState('');
   const [comment, setComment] = useState('');
   const [categoryName, setCategoryName] = useState('');
-  const { products } = useShop();
+  const { products, token, user } = useShop();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
   // Load sản phẩm
@@ -64,11 +64,18 @@ const filteredProducts = useMemo(() => {
   // Gửi đánh giá
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
+    
+    // Kiểm tra đăng nhập
+    if (!token || !user) {
+      alert('🔐 Vui lòng đăng nhập để đánh giá sản phẩm!');
+      return;
+    }
+    
     try {
       const reviewData = {
         star,
         comment,
-        postedBy: '663a9efce7e4ccaa384f29d4' // TODO: Lấy từ user đăng nhập
+        postedBy: user._id // Sử dụng user ID thực từ context
       };
       const res = await axios.post(`${backendUrl}/api/products/${id}/review`, reviewData);
       alert('🎉 Gửi đánh giá thành công!');
@@ -182,51 +189,77 @@ const filteredProducts = useMemo(() => {
 
       {/* Đánh giá */}
       <h3 className="text-lg font-semibold text-gray-800 mt-8 mb-2">📝 Viết đánh giá của bạn</h3>
-      <form onSubmit={handleReviewSubmit} className="bg-gray-50 border p-4 rounded-md space-y-3">
-        <label className="block font-medium text-gray-700">🌟 Đánh giá sao:</label>
-        <select
-          value={star}
-          onChange={(e) => setStar(Number(e.target.value))}
-          className="border px-2 py-1 rounded w-full"
-          required
-        >
-          <option value="">Chọn số sao</option>
-          {[5, 4, 3, 2, 1].map(s => (
-            <option key={s} value={s}>{s} sao</option>
-          ))}
-        </select>
-
-        <label className="block font-medium text-gray-700">💬 Nhận xét:</label>
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="border px-2 py-2 rounded w-full"
-          placeholder="Hãy chia sẻ cảm nhận của bạn..."
-          rows={3}
-          required
-        />
-
-        <button
-          type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-        >
-          Gửi đánh giá
-        </button>
-
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">🗣️ Các đánh giá</h3>
-          {product.ratings.length === 0 ? (
-            <p className="text-gray-500">Chưa có đánh giá nào.</p>
-          ) : (
-            product.ratings.map((r, i) => (
-              <div key={i} className="border rounded p-3 bg-white">
-                <p className="text-yellow-500">⭐ {r.star} sao</p>
-                <p className="text-gray-700">{r.comment}</p>
-              </div>
-            ))
-          )}
+      
+      {!token ? (
+        <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
+          <div className="flex items-center gap-3">
+            <span className="text-yellow-600 text-xl">🔐</span>
+            <div>
+              <p className="text-yellow-800 font-medium">Vui lòng đăng nhập để đánh giá sản phẩm</p>
+              <p className="text-yellow-700 text-sm mt-1">Đăng nhập để chia sẻ cảm nhận của bạn về sản phẩm này</p>
+            </div>
+          </div>
+          <div className="mt-3">
+            <Link 
+              to="/dang-nhap" 
+              className="inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+            >
+              Đăng nhập ngay
+            </Link>
+          </div>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleReviewSubmit} className="bg-gray-50 border p-4 rounded-md space-y-3">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-green-600">✅</span>
+            <span className="text-green-700 font-medium">Xin chào, {user.name || user.phone}!</span>
+          </div>
+          
+          <label className="block font-medium text-gray-700">🌟 Đánh giá sao:</label>
+          <select
+            value={star}
+            onChange={(e) => setStar(Number(e.target.value))}
+            className="border px-2 py-1 rounded w-full"
+            required
+          >
+            <option value="">Chọn số sao</option>
+            {[5, 4, 3, 2, 1].map(s => (
+              <option key={s} value={s}>{s} sao</option>
+            ))}
+          </select>
+
+          <label className="block font-medium text-gray-700">💬 Nhận xét:</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="border px-2 py-2 rounded w-full"
+            placeholder="Hãy chia sẻ cảm nhận của bạn..."
+            rows={3}
+            required
+          />
+
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Gửi đánh giá
+          </button>
+        </form>
+      )}
+
+      <div className="mt-6 space-y-4">
+        <h3 className="text-lg font-semibold text-gray-800">🗣️ Các đánh giá</h3>
+        {product.ratings.length === 0 ? (
+          <p className="text-gray-500">Chưa có đánh giá nào.</p>
+        ) : (
+          product.ratings.map((r, i) => (
+            <div key={i} className="border rounded p-3 bg-white">
+              <p className="text-yellow-500">⭐ {r.star} sao</p>
+              <p className="text-gray-700">{r.comment}</p>
+            </div>
+          ))
+        )}
+      </div>
 
       {/* Sản phẩm liên quan */}
       {filteredProducts.length > 0 && (

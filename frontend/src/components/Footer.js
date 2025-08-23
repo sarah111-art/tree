@@ -2,8 +2,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FaFacebookF, FaInstagram, FaYoutube, FaPhoneAlt } from 'react-icons/fa';
 import { SiZalo } from 'react-icons/si';
+import { useShop } from '../context/ShopContext';
 
 export default function Footer() {
+  const { token } = useShop();
+  
   return (
     <footer className="bg-green-700 text-white text-sm">
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-8"
@@ -67,6 +70,18 @@ export default function Footer() {
             <li><b>Phản hồi:</b> 0923 177779</li>
             <li><b>Email:</b> <a href="mailto:info.caybonsai@gmail.com" className="underline">info.caybonsai@gmail.com</a></li>
           </ul>
+          
+          {/* Tài khoản - chỉ hiển thị khi đã đăng nhập */}
+          {token && (
+            <>
+              <h3 className="text-white-400 font-semibold text-md mb-2 mt-4">Tài khoản</h3>
+              <ul className="space-y-1 text-gray-300">
+                <li><Link to="/don-hang" className="hover:text-white transition-colors">📋 Đơn hàng của tôi</Link></li>
+                <li><Link to="/yeu-thich" className="hover:text-white transition-colors">💖 Sản phẩm yêu thích</Link></li>
+                <li><Link to="/gio-hang" className="hover:text-white transition-colors">🛒 Giỏ hàng</Link></li>
+              </ul>
+            </>
+          )}
         </div>
       </div>
 

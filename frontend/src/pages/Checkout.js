@@ -4,13 +4,14 @@ import { backendUrl, useShop } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
 import PaymentInfo from '../components/PaymentInfo';
 import PaymentMethodSelector from '../components/PaymentMethodSelector';
-
+import { useNavigate } from 'react-router-dom';
 const Checkout = () => {
   const { cartItems, setCartItems, user } = useShop();
   const [qrImages, setQrImages] = useState({});
   const [qrInfo, setQrInfo] = useState({});
   const [dynamicQR, setDynamicQR] = useState({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -111,10 +112,14 @@ const Checkout = () => {
         order
       );
 
-      alert('✅ Đặt hàng thành công!');
+      alert('✅ Đặt hàng thành công! Bạn có thể xem đơn hàng trong trang "Đơn hàng của tôi"');
       setCartItems([]);
       localStorage.removeItem('cart');
       setDynamicQR({});
+      // Redirect đến trang đơn hàng sau khi đặt hàng thành công
+      setTimeout(() => {
+        navigate('/don-hang');
+      }, 2000);
     } catch (err) {
       console.error('❌ Lỗi đặt hàng:', err);
       alert('❌ Đặt hàng thất bại!');

@@ -12,6 +12,7 @@ import RelatedProducts from './pages/RelatedProducts';
 import CartPage from './pages/CartPage';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrder';
+import OrderDetail from './pages/OrderDetail';
 import ContactPage from './pages/ContactPage';
 import ProductListByCategory from './pages/ProductListByCategory';
 import SearchResults from './components/SearchResults';
@@ -56,6 +57,7 @@ function App() {
               <Route path="/dang-ky" element={<Register />} />
               <Route path="/dat-hang" element={<Checkout />} />
               <Route path="/don-hang" element={<MyOrders />} />
+              <Route path="/don-hang/:id" element={<OrderDetail />} />
               <Route path="/tim-kiem" element={<SearchResults />} />
 
 
