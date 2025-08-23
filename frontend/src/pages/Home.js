@@ -11,7 +11,7 @@ import ProductCard from '../components/ProductCard';
 import ProductList from '../components/ProductList';
 import SectionBlock from '../components/SectionBlock';
 import QuickView from '../components/QuickView';
-import { HeartHandshake, Phone, Truck, User, Package, ShoppingCart, Heart } from 'lucide-react';
+import { HeartHandshake, Phone, Truck, User, ShoppingCart, Heart } from 'lucide-react';
 
 export default function Home() {
   const { category } = useParams();
@@ -139,18 +139,7 @@ export default function Home() {
                     <p className="text-gray-600">Xin chào, {user?.name || user?.phone}!</p>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Link 
-                      to="/don-hang"
-                      className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100 group"
-                    >
-                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
-                        <Package className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <h3 className="text-center font-semibold text-gray-800 mb-2">Đơn hàng của tôi</h3>
-                      <p className="text-center text-sm text-gray-600">Xem tất cả đơn hàng và theo dõi trạng thái</p>
-                    </Link>
-                    
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Link 
                       to="/yeu-thich"
                       className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-green-100 group"

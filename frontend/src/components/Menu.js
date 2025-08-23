@@ -113,18 +113,7 @@ export default function Menu() {
             </Link>
           </li>
           
-          {/* Đơn hàng - chỉ hiển thị khi đã đăng nhập */}
-          {token && (
-            <li>
-              <Link 
-                to="/don-hang" 
-                className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-green-200 hover:text-green-900 transition-all duration-200"
-              >
-                <span className="text-lg">📋</span>
-                Đơn hàng
-              </Link>
-            </li>
-          )}
+
         </ul>
       </div>
     </nav>

@@ -76,7 +76,6 @@ export default function Footer() {
             <>
               <h3 className="text-white-400 font-semibold text-md mb-2 mt-4">Tài khoản</h3>
               <ul className="space-y-1 text-gray-300">
-                <li><Link to="/don-hang" className="hover:text-white transition-colors">📋 Đơn hàng của tôi</Link></li>
                 <li><Link to="/yeu-thich" className="hover:text-white transition-colors">💖 Sản phẩm yêu thích</Link></li>
                 <li><Link to="/gio-hang" className="hover:text-white transition-colors">🛒 Giỏ hàng</Link></li>
               </ul>
