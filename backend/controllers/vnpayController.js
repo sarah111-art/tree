@@ -151,9 +151,26 @@ export const createVNPayQR = async (req, res) => {
   try {
     const { amount, orderId, orderInfo } = req.body;
 
+    // Kiểm tra environment variables
     const vnp_TmnCode = process.env.VNPAY_TMN_CODE;
     const vnp_HashSecret = process.env.VNPAY_HASH_SECRET;
-    const vnp_Url = process.env.VNPAY_QR_URL || 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction';
+
+    // Log để debug
+    console.log('🔍 VNPay Environment Variables Check:');
+    console.log('VNPAY_TMN_CODE:', vnp_TmnCode ? '✅ Set' : '❌ Missing');
+    console.log('VNPAY_HASH_SECRET:', vnp_HashSecret ? '✅ Set' : '❌ Missing');
+
+    if (!vnp_TmnCode || !vnp_HashSecret) {
+      console.error('❌ Missing VNPay environment variables');
+      return res.status(500).json({
+        message: 'Cấu hình VNPay chưa hoàn chỉnh',
+        error: 'Missing environment variables',
+        details: {
+          tmnCode: !!vnp_TmnCode,
+          hashSecret: !!vnp_HashSecret
+        }
+      });
+    }
 
     const date = new Date();
     const createDate = date.toISOString().split('T')[0].split('-').join('');
@@ -169,7 +186,7 @@ export const createVNPayQR = async (req, res) => {
     vnp_Params['vnp_OrderType'] = 'billpayment';
     vnp_Params['vnp_Locale'] = 'vn';
     vnp_Params['vnp_CreateDate'] = createDate;
-    vnp_Params['vnp_IpAddr'] = req.ip;
+    vnp_Params['vnp_IpAddr'] = req.ip || '127.0.0.1';
 
     // Sắp xếp và tạo chữ ký
     const sortedParams = Object.keys(vnp_Params).sort().reduce((result, key) => {
@@ -185,28 +202,59 @@ export const createVNPayQR = async (req, res) => {
     const signed = hmac.update(new Buffer.from(signData, 'utf-8')).digest('hex');
     vnp_Params['vnp_SecureHash'] = signed;
 
-    // Gọi API VNPay để tạo QR
-    const response = await axios.post(vnp_Url, vnp_Params, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    // Tạo URL thanh toán VNPay
+    const paymentUrl = `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?${Object.keys(vnp_Params).map(key => {
+      return `${key}=${encodeURIComponent(vnp_Params[key])}`;
+    }).join('&')}`;
 
-    if (response.data.vnp_ResponseCode === '00') {
+    // Tạo QR code string cho VNPay (format: vnpay://pay?url=...)
+    const qrString = `vnpay://pay?url=${encodeURIComponent(paymentUrl)}`;
+
+    try {
+      // Tạo QR code base64 (sử dụng thư viện qrcode)
+      const QRCode = await import('qrcode');
+      const qrCodeBase64 = await QRCode.toDataURL(qrString, {
+        errorCorrectionLevel: 'M',
+        type: 'image/png',
+        quality: 0.92,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      // Lấy base64 string từ data URL
+      const base64String = qrCodeBase64.split(',')[1];
+
       res.json({
         resultCode: 0,
         message: 'Tạo QR VNPay thành công',
-        qrCode: response.data.vnp_QRCode,
-        orderId: orderId
+        qrCode: base64String,
+        orderId: orderId,
+        amount: amount,
+        qrString: qrString,
+        paymentUrl: paymentUrl
       });
-    } else {
-      res.status(400).json({
-        resultCode: response.data.vnp_ResponseCode,
-        message: response.data.vnp_Message || 'Lỗi tạo QR VNPay'
+    } catch (qrError) {
+      console.error('❌ Lỗi tạo QR code:', qrError);
+      // Fallback: trả về QR string thay vì base64
+      res.json({
+        resultCode: 0,
+        message: 'Tạo QR VNPay thành công (string only)',
+        qrString: qrString,
+        orderId: orderId,
+        amount: amount,
+        paymentUrl: paymentUrl,
+        error: 'QR image generation failed, using string only'
       });
     }
   } catch (err) {
-    console.error('VNPay QR error:', err);
-    res.status(500).json({ message: 'Lỗi tạo QR VNPay', error: err.message });
+    console.error('❌ VNPay QR error:', err);
+    res.status(500).json({ 
+      message: 'Lỗi tạo QR VNPay', 
+      error: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 };
