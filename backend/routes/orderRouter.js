@@ -46,10 +46,10 @@ orderRouter.put('/:id/status', async (req, res) => {
     res.status(500).json({ message: 'Lỗi cập nhật đơn hàng' });
   }
 });
-orderRouter.get('/user/:phone', async (req, res) => {
-  const { phone } = req.params;
+orderRouter.get('/user/:email', async (req, res) => {
+  const { email } = req.params;
   try {
-    const userOrders = await Order.find({ 'customer.phone': phone });
+    const userOrders = await Order.find({ 'customer.email': email });
     res.json(userOrders);
   } catch (err) {
     res.status(500).json({ message: 'Lỗi khi lọc đơn hàng theo user' });
