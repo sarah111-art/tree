@@ -92,13 +92,22 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!user) {
+      alert('Vui lòng đăng nhập để đặt hàng!');
+      navigate('/dang-nhap');
+      return;
+    }
+
     if (!form.name || !form.phone || !form.address) {
       alert('Vui lòng điền đầy đủ thông tin!');
       return;
     }
 
     const order = {
-      customer: form,
+      customer: {
+        ...form,
+        email: user?.email // Thêm email từ user đã đăng nhập
+      },
       items: cartItems,
       total: totalAmount,
       paymentMethod,
@@ -107,10 +116,12 @@ const Checkout = () => {
     };
 
     try {
+      console.log('📦 Đang tạo đơn hàng:', order);
       const res = await axios.post(
         `${backendUrl}/api/orders`,
         order
       );
+      console.log('✅ Đơn hàng đã tạo:', res.data);
 
       alert('✅ Đặt hàng thành công! Bạn có thể xem đơn hàng trong trang "Đơn hàng của tôi"');
       setCartItems([]);

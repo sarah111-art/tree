@@ -8,16 +8,21 @@ export default function MyOrders() {
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-  if (user?.phone) {
-    console.log('📞 Tìm đơn hàng cho số:', user.phone);
-    axios.get(`${backendUrl}/api/orders/user/${user.phone}`)
+  console.log('🔍 MyOrder - User:', user);
+  if (user?.email) {
+    console.log('📧 Tìm đơn hàng cho email:', user.email);
+    axios.get(`${backendUrl}/api/orders/user/${user.email}`)
       .then(res => {
         console.log('📦 Kết quả đơn hàng:', res.data);
         setOrders(res.data);
       })
-      .catch(err => console.error('❌ Lỗi lấy đơn:', err));
+      .catch(err => {
+        console.error('❌ Lỗi lấy đơn:', err);
+        setOrders([]);
+      });
   } else {
-    console.warn('⚠️ Không có user.phone');
+    console.warn('⚠️ Không có user.email');
+    setOrders([]);
   }
 }, [user]);
 

@@ -55,8 +55,8 @@ export default function Header() {
 
   // Lấy số lượng đơn hàng của người dùng
   useEffect(() => {
-    if (user?.phone) {
-      axios.get(`${backendUrl}/api/orders/user/${user.phone}`).then((res) => {
+    if (user?.email) {
+      axios.get(`${backendUrl}/api/orders/user/${user.email}`).then((res) => {
         setOrderCount(res.data.length);
       }).catch((err) => {
         console.error('Lỗi khi lấy số lượng đơn hàng:', err);
