@@ -2,10 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl, useShop } from '../context/ShopContext';
 import { Link } from 'react-router-dom';
+import PaymentInfo from '../components/PaymentInfo';
+import PaymentMethodSelector from '../components/PaymentMethodSelector';
 
 const Checkout = () => {
   const { cartItems, setCartItems, user } = useShop();
   const [qrImages, setQrImages] = useState({});
+  const [qrInfo, setQrInfo] = useState({});
+  const [dynamicQR, setDynamicQR] = useState({});
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
@@ -22,6 +27,67 @@ const Checkout = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ✅ Tạo QR code động cho đơn hàng
+  const createDynamicQR = async (method) => {
+    if (method === 'cod') return;
+    
+    setLoading(true);
+    try {
+      const orderId = `ORDER_${Date.now()}`;
+      const orderInfo = `Thanh toan don hang ${orderId}`;
+      
+      if (method === 'momo') {
+        // Tạo QR Momo động
+        const response = await axios.post(`${backendUrl}/api/momo/create-qr`, {
+          amount: totalAmount,
+          orderId: orderId,
+          orderInfo: orderInfo
+        });
+        
+        if (response.data.resultCode === 0) {
+          setDynamicQR(prev => ({
+            ...prev,
+            momo: {
+              qrCode: response.data.qrCode,
+              orderId: orderId,
+              amount: totalAmount
+            }
+          }));
+        }
+      } else if (method === 'vnpay') {
+        // Tạo QR VNPay động
+        const response = await axios.post(`${backendUrl}/api/vnpay/create-qr`, {
+          amount: totalAmount,
+          orderId: orderId,
+          orderInfo: orderInfo
+        });
+        
+        if (response.data.resultCode === 0) {
+          setDynamicQR(prev => ({
+            ...prev,
+            vnpay: {
+              qrCode: response.data.qrCode,
+              orderId: orderId,
+              amount: totalAmount
+            }
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('❌ Lỗi tạo QR động:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Xử lý thay đổi phương thức thanh toán
+  const handlePaymentMethodChange = (method) => {
+    setPaymentMethod(method);
+    if (method !== 'cod' && method !== 'bank') {
+      createDynamicQR(method);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -35,6 +101,7 @@ const Checkout = () => {
       items: cartItems,
       total: totalAmount,
       paymentMethod,
+      orderId: dynamicQR[paymentMethod]?.orderId || `ORDER_${Date.now()}`,
       createdAt: new Date().toISOString(),
     };
 
@@ -47,22 +114,34 @@ const Checkout = () => {
       alert('✅ Đặt hàng thành công!');
       setCartItems([]);
       localStorage.removeItem('cart');
+      setDynamicQR({});
     } catch (err) {
       console.error('❌ Lỗi đặt hàng:', err);
       alert('❌ Đặt hàng thất bại!');
     }
   };
 
-  // ✅ Load QR bằng axios
+  // ✅ Load QR tĩnh (thông tin tài khoản)
   useEffect(() => {
     const fetchQR = async () => {
       try {
         const res = await axios.get(`${backendUrl}/api/qr`);
         const qrMap = {};
+        const qrInfoMap = {};
+        
         res.data.forEach((qr) => {
           qrMap[qr.type] = qr.imageUrl;
+          qrInfoMap[qr.type] = {
+            imageUrl: qr.imageUrl,
+            phoneNumber: qr.phoneNumber,
+            accountName: qr.accountName,
+            bankCode: qr.bankCode,
+            accountNumber: qr.accountNumber
+          };
         });
+        
         setQrImages(qrMap);
+        setQrInfo(qrInfoMap);
       } catch (err) {
         console.error('❌ Lỗi lấy mã QR:', err);
       }
@@ -135,61 +214,40 @@ const Checkout = () => {
               rows={3}
             ></textarea>
 
-            <div>
-              <label className="block font-medium mb-1">
-                Phương thức thanh toán:
-              </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className="w-full border px-3 py-2 rounded"
-              >
-                <option value="cod">💵 Thanh toán khi nhận hàng (COD)</option>
-                <option value="momo">📱 Ví Momo</option>
-                <option value="bank">🏦 Chuyển khoản ngân hàng</option>
-              </select>
-            </div>
+            {/* Chọn phương thức thanh toán */}
+            <PaymentMethodSelector
+              selectedMethod={paymentMethod}
+              onMethodChange={handlePaymentMethodChange}
+            />
 
-            {/* QR Momo */}
-            {paymentMethod === 'momo' && qrImages.momo && (
-              <div className="bg-pink-50 p-3 rounded">
-                <p>Quét mã để chuyển tiền qua Momo:</p>
-                <img
-                  src={qrImages.momo}
-                  alt="QR Momo"
-                  className="w-52 mt-2 rounded border"
-                />
-                <p className="mt-1 text-sm">
-                  Số tiền: <strong>{totalAmount.toLocaleString()} đ</strong>
-                </p>
+            {/* Loading indicator */}
+            {loading && (
+              <div className="flex items-center justify-center p-4 bg-blue-50 rounded">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mr-2"></div>
+                <span className="text-blue-600">Đang tạo mã QR...</span>
               </div>
             )}
 
-            {/* QR Bank */}
-            {paymentMethod === 'bank' && qrImages.bank && (
-              <div className="bg-blue-50 p-3 rounded text-sm">
-                <p>Chuyển khoản ngân hàng theo thông tin sau:</p>
-                <ul className="mt-2 space-y-1">
-                  <li><strong>Ngân hàng:</strong> Vietcombank</li>
-                  <li><strong>Số tài khoản:</strong> 0123456789</li>
-                  <li><strong>Chủ tài khoản:</strong> NGUYEN VAN A</li>
-                  <li><strong>Nội dung:</strong> {form.name} - Đặt Bonsai</li>
-                </ul>
-                <div className="mt-2">
-                  <img
-                    src={qrImages.bank}
-                    alt="QR Ngân hàng"
-                    className="w-52 rounded border"
-                  />
-                </div>
-              </div>
-            )}
+            {/* Hiển thị thông tin thanh toán */}
+            <PaymentInfo
+              type={paymentMethod}
+              qrInfo={qrInfo}
+              dynamicQR={dynamicQR}
+              amount={totalAmount}
+              customerName={form.name}
+              loading={loading}
+            />
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
+              disabled={loading}
+              className={`w-full py-2 rounded font-medium ${
+                loading
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
             >
-              Xác nhận đặt hàng
+              {loading ? 'Đang xử lý...' : 'Xác nhận đặt hàng'}
             </button>
           </form>
         </div>

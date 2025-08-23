@@ -1,27 +1,93 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { 
+  validateName, 
+  validateEmail, 
+  validatePassword, 
+  validateConfirmPassword 
+} from "../utils/validation";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 export default function Register() {
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    const nameError = validateName(form.name);
+    if (nameError) newErrors.name = nameError;
+    
+    const emailError = validateEmail(form.email);
+    if (emailError) newErrors.email = emailError;
+    
+    const passwordError = validatePassword(form.password);
+    if (passwordError) newErrors.password = passwordError;
+    
+    const confirmPasswordError = validateConfirmPassword(form.confirmPassword, form.password);
+    if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    let error = "";
+    
+    switch (name) {
+      case "name":
+        error = validateName(value);
+        break;
+      case "email":
+        error = validateEmail(value);
+        break;
+      case "password":
+        error = validatePassword(value);
+        break;
+      case "confirmPassword":
+        error = validateConfirmPassword(value, form.password);
+        break;
+      default:
+        break;
+    }
+    
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error("Vui lòng kiểm tra lại thông tin!");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await axios.post(`${backendUrl}/users/register`, form);
-      alert("Đăng ký thành công!");
+      const { confirmPassword, ...registerData } = form;
+      const res = await axios.post(`${backendUrl}/users/register`, registerData);
+      toast.success("Đăng ký thành công!");
       navigate("/dang-nhap");
     } catch (err) {
-      alert(err.response?.data?.message || "Đăng ký thất bại!");
+      toast.error(err.response?.data?.message || "Đăng ký thất bại!");
     } finally {
       setLoading(false);
     }
@@ -43,10 +109,20 @@ export default function Register() {
             name="name"
             value={form.name}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-green-400"
+            onBlur={handleBlur}
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.name 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
+            placeholder="Nhập họ tên của bạn"
             required
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
+
         <div>
           <label htmlFor="email" className="block font-medium mb-1">
             Email
@@ -57,10 +133,20 @@ export default function Register() {
             name="email"
             value={form.email}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-green-400"
+            onBlur={handleBlur}
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.email 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
+            placeholder="Nhập email của bạn"
             required
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
+
         <div>
           <label htmlFor="password" className="block font-medium mb-1">
             Mật khẩu
@@ -71,18 +157,79 @@ export default function Register() {
             name="password"
             value={form.password}
             onChange={handleChange}
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-green-400"
+            onBlur={handleBlur}
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.password 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
+            placeholder="Nhập mật khẩu (6-20 ký tự)"
             required
           />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
+          <p className="text-gray-500 text-xs mt-1">
+            Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường và số
+          </p>
         </div>
+
+        <div>
+          <label htmlFor="confirmPassword" className="block font-medium mb-1">
+            Xác nhận mật khẩu
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.confirmPassword 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
+            placeholder="Nhập lại mật khẩu"
+            required
+          />
+          {errors.confirmPassword && (
+            <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+          )}
+        </div>
+
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition"
           disabled={loading}
+          className={`w-full py-2 px-4 rounded transition ${
+            loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          }`}
         >
-          {loading ? "Đang xử lý..." : "Đăng ký"}
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Đang xử lý...
+            </div>
+          ) : (
+            'Đăng ký'
+          )}
         </button>
       </form>
+
+      <div className="mt-4 text-center">
+        <p className="text-sm text-gray-600">
+          Đã có tài khoản?{" "}
+          <button
+            onClick={() => navigate("/dang-nhap")}
+            className="text-green-600 hover:underline focus:outline-none"
+            type="button"
+          >
+            Đăng nhập ngay
+          </button>
+        </p>
+      </div>
     </div>
   );
 }

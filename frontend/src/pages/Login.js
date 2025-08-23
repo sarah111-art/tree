@@ -3,15 +3,82 @@ import axios from "axios";
 import { backendUrl, useShop } from "../context/ShopContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { validateEmail, validateSimplePassword } from "../utils/validation";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { setToken } = useShop();
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    const emailError = validateEmail(email);
+    if (emailError) newErrors.email = emailError;
+    
+    const passwordError = validateSimplePassword(password);
+    if (passwordError) newErrors.password = passwordError;
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    if (errors.email) {
+      const emailError = validateEmail(value);
+      setErrors(prev => ({
+        ...prev,
+        email: emailError || null
+      }));
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    if (errors.password) {
+      const passwordError = validateSimplePassword(value);
+      setErrors(prev => ({
+        ...prev,
+        password: passwordError || null
+      }));
+    }
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    let error = "";
+    
+    switch (name) {
+      case "email":
+        error = validateEmail(value);
+        break;
+      case "password":
+        error = validateSimplePassword(value);
+        break;
+      default:
+        break;
+    }
+    
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error("Vui lòng kiểm tra lại thông tin!");
+      return;
+    }
+
+    setLoading(true);
     console.log("Đã nhấn nút đăng nhập");
     console.log("backendUrl:", backendUrl);
 
@@ -31,6 +98,8 @@ export default function Login() {
       toast.error(
         err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại."
       );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,7 +110,6 @@ export default function Login() {
   const handleForgotPassword = () => {
     alert("Chuyển tới trang Quên mật khẩu");
   };
-
 
   return (
     <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded-xl p-6">
@@ -56,11 +124,21 @@ export default function Login() {
           <input
             type="email"
             id="email"
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-green-400"
+            name="email"
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.email 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
+            onBlur={handleBlur}
+            placeholder="Nhập email của bạn"
             required
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+          )}
         </div>
 
         <div>
@@ -70,18 +148,40 @@ export default function Login() {
           <input
             type="password"
             id="password"
-            className="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:border-green-400"
+            name="password"
+            className={`w-full border rounded px-3 py-2 focus:outline-none focus:ring ${
+              errors.password 
+                ? 'border-red-500 focus:border-red-500 focus:ring-red-200' 
+                : 'focus:border-green-400 focus:ring-green-200'
+            }`}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
+            onBlur={handleBlur}
+            placeholder="Nhập mật khẩu của bạn"
             required
           />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
         </div>
 
         <button
           type="submit"
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition"
+          disabled={loading}
+          className={`w-full py-2 px-4 rounded transition ${
+            loading
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          }`}
         >
-          Đăng nhập
+          {loading ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Đang xử lý...
+            </div>
+          ) : (
+            'Đăng nhập'
+          )}
         </button>
       </form>
 
