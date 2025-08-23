@@ -15,6 +15,7 @@ const Checkout = () => {
   const [form, setForm] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
+    email: user?.email || '',
     address: '',
   });
   const [paymentMethod, setPaymentMethod] = useState('cod');
@@ -92,21 +93,22 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!user) {
-      alert('Vui lòng đăng nhập để đặt hàng!');
-      navigate('/dang-nhap');
+    if (!form.name || !form.phone || !form.email || !form.address) {
+      alert('Vui lòng điền đầy đủ thông tin!');
       return;
     }
 
-    if (!form.name || !form.phone || !form.address) {
-      alert('Vui lòng điền đầy đủ thông tin!');
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      alert('Vui lòng nhập email hợp lệ!');
       return;
     }
 
     const order = {
       customer: {
         ...form,
-        email: user?.email // Thêm email từ user đã đăng nhập
+        email: form.email // Sử dụng email từ form
       },
       items: cartItems,
       total: totalAmount,
@@ -123,14 +125,20 @@ const Checkout = () => {
       );
       console.log('✅ Đơn hàng đã tạo:', res.data);
 
-      alert('✅ Đặt hàng thành công! Bạn có thể xem đơn hàng trong trang "Đơn hàng của tôi"');
+      if (user) {
+        alert('✅ Đặt hàng thành công! Bạn có thể xem đơn hàng trong trang "Đơn hàng của tôi"');
+        setTimeout(() => {
+          navigate('/don-hang');
+        }, 2000);
+      } else {
+        alert('✅ Đặt hàng thành công! Vui lòng đăng nhập để xem chi tiết đơn hàng của bạn.');
+        setTimeout(() => {
+          navigate('/dang-nhap');
+        }, 2000);
+      }
       setCartItems([]);
       localStorage.removeItem('cart');
       setDynamicQR({});
-      // Redirect đến trang đơn hàng sau khi đặt hàng thành công
-      setTimeout(() => {
-        navigate('/don-hang');
-      }, 2000);
     } catch (err) {
       console.error('❌ Lỗi đặt hàng:', err);
       alert('❌ Đặt hàng thất bại!');
@@ -205,6 +213,27 @@ const Checkout = () => {
             className="bg-white p-4 rounded shadow space-y-4"
           >
             <h3 className="text-lg font-semibold">Thông tin giao hàng</h3>
+            
+            {/* Thông báo cho khách chưa đăng nhập */}
+            {!user && (
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
+                <div className="flex items-center gap-3">
+                  <span className="text-blue-600 text-xl">ℹ️</span>
+                  <div>
+                    <p className="text-blue-800 font-medium">Bạn có thể đặt hàng mà không cần đăng nhập</p>
+                    <p className="text-blue-700 text-sm mt-1">Đăng nhập để xem chi tiết đơn hàng và theo dõi trạng thái</p>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <Link 
+                    to="/dang-nhap" 
+                    className="inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    Đăng nhập ngay
+                  </Link>
+                </div>
+              </div>
+            )}
             <input
               type="text"
               name="name"
@@ -218,6 +247,14 @@ const Checkout = () => {
               name="phone"
               placeholder="Số điện thoại"
               value={form.phone}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={form.email}
               onChange={handleChange}
               className="w-full border px-3 py-2 rounded"
             />

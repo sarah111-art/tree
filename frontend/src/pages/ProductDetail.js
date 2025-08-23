@@ -11,8 +11,13 @@ export default function ProductDetail() {
   const [star, setStar] = useState('');
   const [comment, setComment] = useState('');
   const [categoryName, setCategoryName] = useState('');
-  const { products, token, user } = useShop();
+  const [quantity, setQuantity] = useState(1);
+  const { products, token, user, cartItems, setCartItems } = useShop();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  
+  // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
+  const isInCart = cartItems.some(item => item._id === product?._id);
+  const cartItem = cartItems.find(item => item._id === product?._id);
 
   // Load sản phẩm
   useEffect(() => {
@@ -60,6 +65,38 @@ const filteredProducts = useMemo(() => {
       p.status === 'active'
   );
 }, [products, product]);
+
+  // Thêm vào giỏ hàng
+  const handleAddToCart = () => {
+    if (!product) return;
+    
+    const existingItem = cartItems.find(item => item._id === product._id);
+    
+    if (existingItem) {
+      // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng
+      const updatedCart = cartItems.map(item =>
+        item._id === product._id
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      );
+      setCartItems(updatedCart);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+    } else {
+      // Nếu sản phẩm chưa có, thêm mới
+      const newItem = {
+        _id: product._id,
+        name: product.name,
+        price: product.salePrice || product.price,
+        image: product.image || product.images?.[0]?.url,
+        quantity: quantity
+      };
+      const updatedCart = [...cartItems, newItem];
+      setCartItems(updatedCart);
+      localStorage.setItem('cart', JSON.stringify(updatedCart));
+    }
+    
+    alert(`✅ Đã thêm ${quantity} ${product.name} vào giỏ hàng!`);
+  };
 
   // Gửi đánh giá
   const handleReviewSubmit = async (e) => {
@@ -164,15 +201,33 @@ const filteredProducts = useMemo(() => {
             <input
               type="number"
               min="1"
-              defaultValue={1}
+              value={quantity}
+              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               className="w-20 border border-gray-300 rounded px-2 py-1"
             />
           </div>
 
           <div className="flex flex-wrap gap-4 mt-6">
-            <button className="bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition">
-              THÊM VÀO GIỎ
-            </button>
+            {isInCart ? (
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={handleAddToCart}
+                  className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+                >
+                  🛒 CẬP NHẬT GIỎ HÀNG
+                </button>
+                <span className="text-sm text-gray-600">
+                  Đã có {cartItem?.quantity || 0} sản phẩm trong giỏ
+                </span>
+              </div>
+            ) : (
+              <button 
+                onClick={handleAddToCart}
+                className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition flex items-center gap-2"
+              >
+                🛒 THÊM VÀO GIỎ
+              </button>
+            )}
             <a
               href="tel:0123456789"
               className="bg-pink-600 text-white px-6 py-2 rounded hover:bg-pink-700 transition"
@@ -180,6 +235,17 @@ const filteredProducts = useMemo(() => {
               📞 GỌI MUA HÀNG
             </a>
           </div>
+          
+          {isInCart && (
+            <div className="mt-4">
+              <Link 
+                to="/gio-hang"
+                className="text-green-600 hover:text-green-700 text-sm font-medium hover:underline"
+              >
+                👀 Xem giỏ hàng ({cartItems.length} sản phẩm)
+              </Link>
+            </div>
+          )}
 
           <p className="mt-6 text-sm text-gray-500">
             Mã sản phẩm: <span className="font-mono">SP-{product._id.slice(0, 6).toUpperCase()}</span>
