@@ -1,10 +1,15 @@
 import express from 'express';
-import { createMomoPayment } from '../controllers/momoController.js';
-import { handleMomoIPN } from '../controllers/momoController.js';
+import { createMomoPayment, createMomoQR, handleMomoIPN } from '../controllers/momoController.js';
 
 const momoRouter = express.Router();
 
-// 📌 Route: Gửi yêu cầu thanh toán đến Momo
+// 📌 Route: Tạo yêu cầu thanh toán Momo
 momoRouter.post('/create-payment', createMomoPayment);
-momoRouter.post('/ipn', handleMomoIPN); 
+
+// 📌 Route: Tạo QR code động cho Momo
+momoRouter.post('/create-qr', createMomoQR);
+
+// 📌 Route: IPN callback từ Momo
+momoRouter.post('/ipn', handleMomoIPN);
+
 export default momoRouter;

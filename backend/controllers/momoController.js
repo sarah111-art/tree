@@ -5,7 +5,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// 📌 Tạo yêu cầu thanh toán
+// 📌 Tạo yêu cầu thanh toán Momo
 export const createMomoPayment = async (req, res) => {
   try {
     const { amount, orderId, orderInfo, redirectUrl } = req.body;
@@ -13,37 +13,114 @@ export const createMomoPayment = async (req, res) => {
     const partnerCode = process.env.MOMO_PARTNER_CODE;
     const accessKey = process.env.MOMO_ACCESS_KEY;
     const secretKey = process.env.MOMO_SECRET_KEY;
-    const requestId = orderId + '-' + Date.now();
-    const requestType = 'captureWallet';
     const ipnUrl = process.env.MOMO_IPN_URL;
+    const requestType = 'captureWallet';
+    const extraData = '';
 
-    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=${requestType}`;
+    const requestId = partnerCode + new Date().getTime();
+    const orderIdStr = orderId || partnerCode + new Date().getTime();
+    const orderInfoStr = orderInfo || 'Thanh toan qua MoMo';
+    const redirectUrlStr = redirectUrl || 'https://webhook.site/b88d02f5-c29a-40ce-ba30-6e5b8b3c9f8c';
+    const amountNum = amount;
+    const rawSignature = `accessKey=${accessKey}&amount=${amountNum}&extraData=${extraData}&ipnUrl=${ipnUrl}&orderId=${orderIdStr}&orderInfo=${orderInfoStr}&partnerCode=${partnerCode}&redirectUrl=${redirectUrlStr}&requestId=${requestId}&requestType=${requestType}`;
+
     const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
-    const payload = {
-      partnerCode,
-      accessKey,
-      requestId,
-      amount,
-      orderId,
-      orderInfo,
-      redirectUrl,
-      ipnUrl,
-      extraData: '',
-      requestType,
-      signature,
+    const requestBody = {
+      partnerCode: partnerCode,
+      partnerName: 'Test',
+      storeId: 'MomoTestStore',
+      requestId: requestId,
+      amount: amountNum,
+      orderId: orderIdStr,
+      orderInfo: orderInfoStr,
+      redirectUrl: redirectUrlStr,
+      ipnUrl: ipnUrl,
       lang: 'vi',
+      extraData: extraData,
+      requestType: requestType,
+      signature: signature
     };
 
-    const momoRes = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', payload);
-    res.json(momoRes.data);
+    const response = await axios.post('https://test-payment.momo.vn/v2/gateway/api/create', requestBody, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.data.resultCode === 0) {
+      res.json({
+        resultCode: 0,
+        message: 'Tạo thanh toán Momo thành công',
+        payUrl: response.data.payUrl,
+        orderId: orderIdStr
+      });
+    } else {
+      res.status(400).json({
+        resultCode: response.data.resultCode,
+        message: response.data.message || 'Lỗi tạo thanh toán Momo'
+      });
+    }
   } catch (err) {
     console.error('Momo error:', err);
     res.status(500).json({ message: 'Lỗi tạo thanh toán Momo', error: err.message });
   }
 };
 
-// 📌 Xử lý IPN từ Momo để xác nhận thanh toán (sau khi Momo gọi về)
+// 📌 Tạo QR code động cho Momo
+export const createMomoQR = async (req, res) => {
+  try {
+    const { amount, orderId, orderInfo } = req.body;
+
+    const partnerCode = process.env.MOMO_PARTNER_CODE;
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
+    const requestType = 'captureWallet';
+    const extraData = '';
+
+    const requestId = partnerCode + new Date().getTime();
+    const orderIdStr = orderId || partnerCode + new Date().getTime();
+    const orderInfoStr = orderInfo || 'Thanh toan qua MoMo';
+    const amountNum = amount;
+
+    // Tạo QR code string cho Momo
+    const qrString = `2|${partnerCode}|${orderIdStr}|${amountNum}|${orderInfoStr}`;
+    
+    // Tạo chữ ký cho QR
+    const rawSignature = `accessKey=${accessKey}&amount=${amountNum}&extraData=${extraData}&orderId=${orderIdStr}&orderInfo=${orderInfoStr}&partnerCode=${partnerCode}&requestId=${requestId}&requestType=${requestType}`;
+    const signature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
+
+    // Tạo QR code base64 (sử dụng thư viện qrcode)
+    const QRCode = await import('qrcode');
+    const qrCodeBase64 = await QRCode.toDataURL(qrString, {
+      errorCorrectionLevel: 'M',
+      type: 'image/png',
+      quality: 0.92,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF'
+      }
+    });
+
+    // Lấy base64 string từ data URL
+    const base64String = qrCodeBase64.split(',')[1];
+
+    res.json({
+      resultCode: 0,
+      message: 'Tạo QR Momo thành công',
+      qrCode: base64String,
+      orderId: orderIdStr,
+      amount: amountNum,
+      qrString: qrString
+    });
+  } catch (err) {
+    console.error('Momo QR error:', err);
+    res.status(500).json({ message: 'Lỗi tạo QR Momo', error: err.message });
+  }
+};
+
+// 📌 Xử lý IPN từ Momo
 export const handleMomoIPN = async (req, res) => {
   try {
     const {
@@ -57,33 +134,48 @@ export const handleMomoIPN = async (req, res) => {
       resultCode,
       message,
       payType,
-      responseTime,
-      extraData,
-      signature,
+      signature
     } = req.body;
 
-    // ✅ Bước 1: kiểm tra chữ ký hợp lệ
-    const rawSignature = `accessKey=${process.env.MOMO_ACCESS_KEY}&amount=${amount}&extraData=${extraData}&message=${message}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${responseTime}&resultCode=${resultCode}&transId=${transId}`;
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.MOMO_SECRET_KEY)
-      .update(rawSignature)
-      .digest('hex');
+    // Verify signature
+    const secretKey = process.env.MOMO_SECRET_KEY;
+    const rawSignature = `accessKey=${process.env.MOMO_ACCESS_KEY}&amount=${amount}&extraData=&ipnUrl=${process.env.MOMO_IPN_URL}&orderId=${orderId}&orderInfo=${orderInfo}&orderType=${orderType}&partnerCode=${partnerCode}&payType=${payType}&requestId=${requestId}&responseTime=${new Date().getTime()}&resultCode=${resultCode}&transId=${transId}`;
+    const expectedSignature = crypto.createHmac('sha256', secretKey).update(rawSignature).digest('hex');
 
     if (signature !== expectedSignature) {
-      return res.status(400).json({ message: 'Sai chữ ký Momo' });
+      console.error('❌ Sai chữ ký Momo IPN');
+      return res.status(400).json({ message: 'Sai chữ ký' });
     }
 
-    // ✅ Bước 2: Nếu thành công, cập nhật đơn hàng (tuỳ DB của bạn)
     if (resultCode === 0) {
       console.log(`✅ Thanh toán thành công cho đơn ${orderId}`);
-      // TODO: Update đơn hàng có orderId trong DB => status = 'paid'
+      try {
+        const Order = (await import('../models/orderModel.js')).default;
+        const updatedOrder = await Order.findOneAndUpdate(
+          { orderId: orderId },
+          {
+            status: 'paid',
+            paymentMethod: 'momo',
+            paymentId: transId,
+            paidAt: new Date()
+          },
+          { new: true }
+        );
+        if (updatedOrder) {
+          console.log(`✅ Đã cập nhật đơn hàng ${orderId} thành công`);
+        } else {
+          console.warn(`⚠️ Không tìm thấy đơn hàng ${orderId} để cập nhật`);
+        }
+      } catch (dbError) {
+        console.error('❌ Lỗi cập nhật database:', dbError);
+      }
     } else {
       console.warn(`⚠️ Giao dịch thất bại đơn ${orderId} - Momo code: ${resultCode}`);
     }
 
     res.status(200).json({ message: 'IPN received' });
   } catch (err) {
-    console.error('IPN Momo lỗi:', err);
-    res.status(500).json({ message: 'Lỗi xử lý IPN Momo' });
+    console.error('Momo IPN error:', err);
+    res.status(500).json({ message: 'Lỗi xử lý IPN', error: err.message });
   }
 };

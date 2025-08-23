@@ -3,6 +3,7 @@
 // Đây là controller mô phỏng gửi đơn hàng và hiển thị thông tin chuyển khoản ngân hàng
 
 import Order from '../models/orderModel.js';
+import QR from '../models/qrModel.js';
 
 export const createBankOrder = async (req, res) => {
   try {
@@ -24,9 +25,27 @@ export const createBankOrder = async (req, res) => {
         accountName: 'CTY TNHH BONSAI VIET',
         content: `Thanh toan DH#${saved._id}`,
       },
+      vnpayQR: vnpayQR ? {
+        imageUrl: vnpayQR.imageUrl,
+        bankCode: vnpayQR.bankCode,
+        accountNumber: vnpayQR.accountNumber
+      } : null
     });
   } catch (err) {
     console.error('Lỗi tạo đơn hàng ngân hàng:', err);
     res.status(500).json({ message: 'Lỗi server', error: err.message });
+  }
+};
+
+// 📌 Lấy thông tin QR VNPay
+export const getVNPayQRInfo = async (req, res) => {
+  try {
+    const vnpayQR = await QR.findOne({ type: 'vnpay', isActive: true });
+    if (!vnpayQR) {
+      return res.status(404).json({ message: 'Không tìm thấy QR VNPay' });
+    }
+    res.json(vnpayQR);
+  } catch (err) {
+    res.status(500).json({ message: 'Lỗi khi lấy QR VNPay', error: err.message });
   }
 };

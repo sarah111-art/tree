@@ -15,9 +15,10 @@ const orderSchema = new mongoose.Schema({
     },
   ],
   total: { type: Number, required: true },
+  orderId: { type: String, unique: true },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled'],
+    enum: ['pending', 'confirmed', 'shipping', 'delivered', 'cancelled', 'paid'],
     default: 'pending',
   },
   paymentMethod: {
@@ -26,6 +27,8 @@ const orderSchema = new mongoose.Schema({
     default: 'cod',
   },
   isPaid: { type: Boolean, default: false },
+  paymentId: { type: String }, // Momo transaction ID
+  paidAt: { type: Date },
   bankTransferInfo: {
     accountName: { type: String },
     accountNumber: { type: String },

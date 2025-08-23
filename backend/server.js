@@ -8,10 +8,13 @@ import categoryRoutes from './routes/categoryRouter.js'
 import uploadRoute from './routes/uploadRoute.js';
 import productRouter from './routes/productRouter.js'
 import orderRouter from './routes/orderRouter.js'
+import bankRouter from './routes/bankRouter.js'
 import bannerRouter from './routes/bannerRouter.js'
 import postRouter from './routes/postRouter.js'
 import contactRouter from './routes/contactRouter.js'
 import qrRouter from './routes/qrRouter.js'
+import momoRouter from './routes/momoRouter.js'
+import vnpayRouter from './routes/vnpayRouter.js'
 import activityRouter from './routes/activityLogRouter.js'
 dotenv.config()
 
@@ -35,6 +38,8 @@ app.use('/uploads', express.static('uploads'));// Connect DB and start server
 app.use('/api/products', productRouter);
 //order
 app.use('/api/orders', orderRouter);
+//bank
+app.use('/api/bank', bankRouter);
 //banner
 app.use('/api/banners',bannerRouter);
 //post
@@ -43,6 +48,10 @@ app.use('/api/posts', postRouter);
 app.use('/api/contacts', contactRouter);
 //qr
 app.use('/api/qr', qrRouter);
+//momo payment
+app.use('/api/momo', momoRouter);
+//vnpay payment
+app.use('/api/vnpay', vnpayRouter);
 //ativity
 app.use('/api', activityRouter);  
 mongoose.connect(process.env.MONGO_URL)
