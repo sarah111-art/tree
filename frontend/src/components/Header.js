@@ -8,6 +8,10 @@ import { backendUrl } from '../context/ShopContext';
 export default function Header() {
   const [orderCount, setOrderCount] = useState(0);
   const { token, user, setToken, setUser, cartItems, products } = useShop();
+  
+  // Debug log
+  console.log("Header - Token:", token);
+  console.log("Header - User:", user);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
   const [suggestions, setSuggestions] = useState([]);
@@ -54,7 +58,12 @@ export default function Header() {
     if (user?.phone) {
       axios.get(`${backendUrl}/api/orders/user/${user.phone}`).then((res) => {
         setOrderCount(res.data.length);
+      }).catch((err) => {
+        console.error('Lỗi khi lấy số lượng đơn hàng:', err);
+        setOrderCount(0);
       });
+    } else {
+      setOrderCount(0);
     }
   }, [user]);
 
@@ -195,9 +204,9 @@ export default function Header() {
                 
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold">{user.name?.[0] || user.phone?.[0] || 'U'}</span>
+                    <span className="text-xs font-bold">{user?.name?.[0] || user?.phone?.[0] || 'U'}</span>
                   </div>
-                  <span className="font-medium text-sm">{user.name || user.phone}</span>
+                  <span className="font-medium text-sm">{user?.name || user?.phone || 'User'}</span>
                 </div>
                 
                 <button 
@@ -300,9 +309,9 @@ export default function Header() {
 
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-white/10">
                   <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-sm font-bold">{user.name?.[0] || user.phone?.[0] || 'U'}</span>
+                    <span className="text-sm font-bold">{user?.name?.[0] || user?.phone?.[0] || 'U'}</span>
                   </div>
-                  <span className="font-medium">{user.name || user.phone}</span>
+                  <span className="font-medium">{user?.name || user?.phone || 'User'}</span>
                 </div>
 
                 <button

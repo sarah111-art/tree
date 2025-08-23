@@ -11,7 +11,7 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setToken } = useShop();
+  const { setToken, setUser } = useShop();
 
   const validateForm = () => {
     const newErrors = {};
@@ -89,8 +89,11 @@ export default function Login() {
       });
       console.log("Phản hồi từ server:", res.data);
 
-      const { token } = res.data;
-      setToken(token); 
+      const { token, user } = res.data;
+      console.log("Token:", token);
+      console.log("User:", user);
+      setToken(token);
+      setUser(user);
       toast.success("Đăng nhập thành công!");
       navigate("/");
     } catch (err) {
