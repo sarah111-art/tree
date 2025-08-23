@@ -83,7 +83,7 @@ export default function Login() {
     console.log("backendUrl:", backendUrl);
 
     try {
-      const res = await axios.post(`${backendUrl}/users/login`, {
+      const res = await axios.post(`${backendUrl}/api/users/login`, {
         email,
         password,
       });

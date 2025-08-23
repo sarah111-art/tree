@@ -8,8 +8,7 @@ import {
   validatePassword, 
   validateConfirmPassword 
 } from "../utils/validation";
-
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+import { backendUrl } from "../context/ShopContext";
 
 export default function Register() {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
@@ -83,7 +82,7 @@ export default function Register() {
     setLoading(true);
     try {
       const { confirmPassword, ...registerData } = form;
-      const res = await axios.post(`${backendUrl}/users/register`, registerData);
+      const res = await axios.post(`${backendUrl}/api/users/register`, registerData);
       toast.success("Đăng ký thành công!");
       navigate("/dang-nhap");
     } catch (err) {
