@@ -16,6 +16,8 @@ import qrRouter from './routes/qrRouter.js'
 import momoRouter from './routes/momoRouter.js'
 import vnpayRouter from './routes/vnpayRouter.js'
 import activityRouter from './routes/activityLogRouter.js'
+import searchRouter from './routes/searchRouter.js'
+import emailRouter from './routes/emailRouter.js'
 dotenv.config()
 
 const app = express()
@@ -53,7 +55,11 @@ app.use('/api/momo', momoRouter);
 //vnpay payment
 app.use('/api/vnpay', vnpayRouter);
 //ativity
-app.use('/api', activityRouter);  
+app.use('/api', activityRouter);
+//search
+app.use('/api/search', searchRouter);
+//email
+app.use('/api/email', emailRouter);  
 mongoose.connect(process.env.MONGO_URL)
   .then(() => {
     app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`))

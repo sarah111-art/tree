@@ -1,5 +1,6 @@
 import express from 'express';
 import Order from '../models/orderModel.js';
+import { sendInvoiceEmail } from '../controllers/emailController.js';
 
 const orderRouter = express.Router();
 
@@ -16,6 +17,18 @@ orderRouter.post('/', async (req, res) => {
     const newOrder = new Order({ customer, items, total });
     const saved = await newOrder.save();
     console.log('✅ Backend - Đơn hàng đã tạo:', saved);
+
+    // Gửi email hóa đơn
+    try {
+      await sendInvoiceEmail({ body: { order: saved } }, { 
+        json: (data) => console.log('📧 Email sent:', data),
+        status: (code) => ({ json: (data) => console.log('📧 Email error:', data) })
+      });
+      console.log('📧 Hóa đơn đã được gửi qua email');
+    } catch (emailError) {
+      console.error('❌ Lỗi gửi email:', emailError);
+      // Không fail đơn hàng nếu gửi email thất bại
+    }
 
     res.status(201).json(saved);
   } catch (error) {
