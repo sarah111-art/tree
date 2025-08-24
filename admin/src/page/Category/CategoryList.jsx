@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
+import { TableLoading } from '../../components/Loading';
 
 const CategoryList = () => {
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -30,11 +32,14 @@ const CategoryList = () => {
 
   const fetchCategories = async () => {
     try {
+      setLoading(true);
       const res = await axios.get(`${backendUrl}/api/categories`);
       setCategories(res.data);
     } catch (err) {
       console.error('Lỗi khi load categories:', err.message);
       showMessage('❌ Lỗi khi tải danh mục', 'error');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -276,56 +281,60 @@ const CategoryList = () => {
       </form>
 
       {/* Danh sách danh mục */}
-      <table className="w-full border text-sm rounded shadow">
-        <thead className="bg-green-100">
-          <tr>
-            <th className="p-2 border">Tên</th>
-            <th className="p-2 border">Slug</th>
-            <th className="p-2 border">Danh mục cha</th>
-            <th className="p-2 border">Trạng thái</th>
-            <th className="p-2 border">Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((cat) => (
-            <tr key={cat._id} className="hover:bg-gray-50">
-              <td className="p-2 border">{cat.name}</td>
-              <td className="p-2 border text-gray-500">{cat.slug}</td>
-              <td className="p-2 border text-gray-600">
-                {typeof cat.parent === 'object' && cat.parent?.name ? cat.parent.name : '---'}
-              </td>
-             <td className="p-2 border">
-                {cat.status === 'active' ? (
-                  <span className="text-green-600">Đang hoạt động</span>
-                ) : (
-                  <span className="text-red-500">Ngừng</span>
-                )}
-              </td>
-              <td className="p-2 border space-x-2">
-                <button
-                  className="text-blue-600 hover:underline"
-                  onClick={() => handleEdit(cat)}
-                >
-                  ✏️ Sửa
-                </button>
-                <button
-                  className="text-red-600 hover:underline"
-                  onClick={() => handleDelete(cat._id)}
-                >
-                  🗑️ Xoá
-                </button>
-              </td>
-            </tr>
-          ))}
-          {categories.length === 0 && (
+      {loading ? (
+        <TableLoading />
+      ) : (
+        <table className="w-full border text-sm rounded shadow">
+          <thead className="bg-green-100">
             <tr>
-              <td colSpan="5" className="text-center p-4 text-gray-400">
-                Không có danh mục nào.
-              </td>
+              <th className="p-2 border">Tên</th>
+              <th className="p-2 border">Slug</th>
+              <th className="p-2 border">Danh mục cha</th>
+              <th className="p-2 border">Trạng thái</th>
+              <th className="p-2 border">Hành động</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {categories.map((cat) => (
+              <tr key={cat._id} className="hover:bg-gray-50">
+                <td className="p-2 border">{cat.name}</td>
+                <td className="p-2 border text-gray-500">{cat.slug}</td>
+                <td className="p-2 border text-gray-600">
+                  {typeof cat.parent === 'object' && cat.parent?.name ? cat.parent.name : '---'}
+                </td>
+               <td className="p-2 border">
+                  {cat.status === 'active' ? (
+                    <span className="text-green-600">Đang hoạt động</span>
+                  ) : (
+                    <span className="text-red-500">Ngừng</span>
+                  )}
+                </td>
+                <td className="p-2 border space-x-2">
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => handleEdit(cat)}
+                  >
+                    ✏️ Sửa
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={() => handleDelete(cat._id)}
+                  >
+                    🗑️ Xoá
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {categories.length === 0 && (
+              <tr>
+                <td colSpan="5" className="text-center p-4 text-gray-400">
+                  Không có danh mục nào.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };

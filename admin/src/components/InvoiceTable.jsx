@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { TableLoading } from './Loading';
 
 const invoices = [
   { customer: 'Customer', product: 'Sunglass', invoice: '#DE2548', price: '$350', status: 'Pending' },
@@ -17,6 +18,21 @@ const statusColor = {
 };
 
 const InvoiceTable = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <TableLoading />;
+  }
+
   return (
     <div className="bg-white p-4 rounded shadow overflow-auto">
       <h2 className="text-lg font-semibold mb-2">Monthly Invoices</h2>

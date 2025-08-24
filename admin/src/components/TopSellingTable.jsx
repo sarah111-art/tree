@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { TableLoading } from './Loading';
 
 const products = [
   { name: 'Product 1', price: '$564', discount: '#DE2548', sold: 60, source: 'Google' },
@@ -17,6 +18,21 @@ const sourceColor = {
 };
 
 const TopSellingTable = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return <TableLoading />;
+  }
+
   return (
     <div className="bg-white p-4 rounded shadow overflow-auto">
       <h2 className="text-lg font-semibold mb-2">Top Selling Products</h2>

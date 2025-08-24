@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip,
   PieChart, Pie, Cell, LineChart, Line,
@@ -7,6 +7,8 @@ import {
 } from 'recharts';
 import InvoiceTable from '../components/InvoiceTable';
 import TopSellingTable from '../components/TopSellingTable';
+import PageWrapper from '../components/PageWrapper';
+import { PageLoading } from '../components/Loading';
 
 
 const barData = [...Array(12)].map((_, i) => ({
@@ -33,8 +35,28 @@ const radarData = [
 ];
 
 const DashboardPage = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading time for dashboard data
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <PageWrapper>
+        <PageLoading />
+      </PageWrapper>
+    );
+  }
+
   return (
-    <div className="p-4 grid grid-cols-12 gap-4">
+    <PageWrapper>
+      <div className="grid grid-cols-12 gap-4">
 
       {/* Revenue Chart */}
       <div className="col-span-12 md:col-span-8 bg-white p-4 rounded shadow">
@@ -136,7 +158,8 @@ const DashboardPage = () => {
         <TopSellingTable />
       </div>
 
-    </div>
+      </div>
+    </PageWrapper>
   );
 };
 
