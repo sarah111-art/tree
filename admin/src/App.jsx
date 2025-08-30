@@ -72,7 +72,7 @@ function App() {
         {/* Main content */}
         <div
           className={`flex-1 transition-all duration-300 ease-in-out 
-          ${sidebarOpen ? 'ml-0' : 'ml-0'} md:ml-72`}
+          ${sidebarOpen ? 'ml-0' : 'ml-0'} md:ml-64`}
         >
           {/* Header */}
           <div className="sticky top-0 z-30 bg-white shadow">

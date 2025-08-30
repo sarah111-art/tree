@@ -44,7 +44,7 @@ export default function ContactList() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="p-6">
       <h2 className="text-xl font-bold mb-4">📩 Quản lý liên hệ</h2>
 
       <div className="grid gap-4">

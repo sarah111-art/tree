@@ -43,7 +43,7 @@ export default function AdminOrderList() {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-bold">📦 Quản lý đơn hàng</h2>
         <button
@@ -103,8 +103,20 @@ export default function AdminOrderList() {
             <h3 className="text-lg font-bold mb-2">🧾 Chi tiết đơn hàng</h3>
             <p><strong>Khách:</strong> {selectedOrder.customer.name}</p>
             <p><strong>SĐT:</strong> {selectedOrder.customer.phone}</p>
+            <p><strong>Email:</strong> {selectedOrder.customer.email}</p>
             <p><strong>Địa chỉ:</strong> {selectedOrder.customer.address}</p>
-            <p><strong>Thanh toán:</strong> {selectedOrder.paymentMethod || 'COD'}</p>
+            <p><strong>Thanh toán:</strong> {
+              (() => {
+                const method = selectedOrder.paymentMethod || 'cod';
+                const methodLabels = {
+                  'cod': '💵 COD (Thanh toán khi nhận hàng)',
+                  'momo': '📱 Momo',
+                  'bank': '🏦 Chuyển khoản ngân hàng',
+                  'vnpay': '🏦 VNPay'
+                };
+                return methodLabels[method] || method.toUpperCase();
+              })()
+            }</p>
             <p><strong>Trạng thái:</strong> {selectedOrder.status}</p>
             <hr className="my-2" />
             <ul className="space-y-1 text-sm">
@@ -142,30 +154,43 @@ export default function AdminOrderList() {
       {loading ? (
         <TableLoading />
       ) : (
-        <table className="w-full border text-sm">
-          <thead className="bg-gray-200">
+        <table className="w-full border border-gray-300 text-sm rounded-lg overflow-hidden shadow-sm">
+          <thead className="bg-gray-100 border-b border-gray-300">
             <tr>
-              <th>Khách hàng</th>
-              <th>SDT</th>
-              <th>Tổng</th>
-              <th>Thanh toán</th>
-              <th>Trạng thái</th>
-              <th>Ngày</th>
-              <th></th>
+              <th className="px-4 py-3 text-left font-semibold">Khách hàng</th>
+              <th className="px-4 py-3 text-left font-semibold">SDT</th>
+              <th className="px-4 py-3 text-left font-semibold">Email</th>
+              <th className="px-4 py-3 text-right font-semibold">Tổng</th>
+              <th className="px-4 py-3 text-center font-semibold">Thanh toán</th>
+              <th className="px-4 py-3 text-center font-semibold">Trạng thái</th>
+              <th className="px-4 py-3 text-center font-semibold">Ngày</th>
+              <th className="px-4 py-3 text-center font-semibold">Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {orders.map(order => (
-              <tr key={order._id} className="border-t text-center">
-                <td>{order.customer.name}</td>
-                <td>{order.customer.phone}</td>
-                <td>{order.total.toLocaleString()} đ</td>
-                <td>{order.paymentMethod || 'COD'}</td>
-                <td>
+              <tr key={order._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150">
+                <td className="px-4 py-3 text-left">{order.customer.name}</td>
+                <td className="px-4 py-3 text-left">{order.customer.phone}</td>
+                <td className="px-4 py-3 text-left">{order.customer.email}</td>
+                <td className="px-4 py-3 text-right font-medium">{order.total.toLocaleString()} đ</td>
+                <td className="px-4 py-3 text-center">
+                  {(() => {
+                    const method = order.paymentMethod || 'cod';
+                    const methodLabels = {
+                      'cod': '💵 COD',
+                      'momo': '📱 Momo',
+                      'bank': '🏦 Chuyển khoản',
+                      'vnpay': '🏦 VNPay'
+                    };
+                    return methodLabels[method] || method.toUpperCase();
+                  })()}
+                </td>
+                <td className="px-4 py-3 text-center">
                   <select
                     value={order.status}
                     onChange={e => handleStatusChange(order._id, e.target.value)}
-                    className="border px-2 py-1 rounded"
+                    className="border px-3 py-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
                     <option value="pending">Chờ xác nhận</option>
                     <option value="confirmed">Đã xác nhận</option>
@@ -174,29 +199,29 @@ export default function AdminOrderList() {
                     <option value="cancelled">Đã huỷ</option>
                   </select>
                 </td>
-                <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                              <td>
-                <div className="flex gap-2 justify-center">
-                  <button
-                    className="text-blue-600 hover:underline text-sm"
-                    onClick={() => setSelectedOrder(order)}
-                  >
-                    👁️ Chi tiết
-                  </button>
-                  <button
-                    className="text-green-600 hover:underline text-sm"
-                    onClick={() => setExportOrder(order)}
-                  >
-                    📄 Xuất
-                  </button>
-                  <button
-                    className="text-blue-600 hover:underline text-sm"
-                    onClick={() => handleResendEmail(order)}
-                  >
-                    📧 Gửi lại
-                  </button>
-                </div>
-              </td>
+                <td className="px-4 py-3 text-center">{new Date(order.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-center">
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium px-2 py-1 rounded transition-colors"
+                      onClick={() => setSelectedOrder(order)}
+                    >
+                      👁️ Chi tiết
+                    </button>
+                    <button
+                      className="text-green-600 hover:text-green-800 hover:underline text-sm font-medium px-2 py-1 rounded transition-colors"
+                      onClick={() => setExportOrder(order)}
+                    >
+                      📄 Xuất
+                    </button>
+                    <button
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium px-2 py-1 rounded transition-colors"
+                      onClick={() => handleResendEmail(order)}
+                    >
+                      📧 Gửi lại
+                    </button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

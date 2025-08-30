@@ -30,7 +30,7 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [bannerMenuOpen, setBannerMenuOpen] = useState(false);
   const [postMenuOpen, setPostMenuOpen] = useState(false);
-  
+
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('adminInfo'));
   const isManager = user?.role === 'manager';
@@ -51,13 +51,13 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
   const MenuItem = ({ to, icon: Icon, children, isActive }) => (
     <Link
       to={to}
-      className={`flex items-center gap-3 px-4 py-1 rounded-lg transition-all duration-200 hover:bg-green-700 hover:text-white group menu-item-hover ${
-        isActive ? 'bg-green-700 text-white shadow-lg menu-item-active' : 'text-green-100 hover:bg-green-700'
+      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 hover:bg-green-700/50 hover:text-white group menu-item-hover ${
+        isActive ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg menu-item-active' : 'text-green-100 hover:bg-green-700/50'
       }`}
       style={{ margin: '0', borderRadius: '0' }}
     >
-      <Icon size={20} className="group-hover:scale-110 transition-transform" />
-      <span className="font-medium">{children}</span>
+      <Icon size={20} className="group-hover:scale-110 transition-transform duration-200" />
+      <span className="font-semibold">{children}</span>
     </Link>
   );
 
@@ -68,34 +68,34 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
           e.preventDefault();
           onClick();
         }}
-        className="flex items-center justify-between w-full px-4 py-1 rounded-lg transition-all duration-200 hover:bg-green-700 hover:text-white group text-green-100"
+        className="flex items-center justify-between w-full px-4 py-3 rounded-xl transition-all duration-200 hover:bg-green-700/50 hover:text-white group text-green-100"
         style={{ margin: '0', borderRadius: '0' }}
       >
         <div className="flex items-center gap-3">
-          <Icon size={20} className="group-hover:scale-110 transition-transform" />
-          <span className="font-medium">{children}</span>
+          <Icon size={20} className="group-hover:scale-110 transition-transform duration-200" />
+          <span className="font-semibold">{children}</span>
         </div>
         <ChevronDown
           size={16}
           className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
-                      <div className={`transition-all duration-300 ease-in-out dropdown-content ${
-          isOpen ? 'open' : ''
-        }`}>
-          <div className="ml-8">
-            {subItems.map((item, index) => (
-              <Link
-                key={index}
-                to={item.to}
-                className="block px-3 py-1 text-sm rounded-md transition-all duration-200 hover:bg-green-600 hover:text-white text-green-200 menu-item-hover"
-                style={{ margin: '0', borderRadius: '0' }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
+      <div className={`transition-all duration-300 ease-in-out dropdown-content ${
+        isOpen ? 'open' : ''
+      }`}>
+        <div className="ml-8 space-y-1">
+          {subItems.map((item, index) => (
+            <Link
+              key={index}
+              to={item.to}
+              className="block px-4 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-green-600/50 hover:text-white text-green-200 menu-item-hover font-medium"
+              style={{ margin: '0', borderRadius: '0' }}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
+      </div>
     </div>
   );
 
@@ -111,46 +111,46 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
 
       {/* Sidebar */}
       <div className={`
-        fixed top-0 left-0 h-full bg-gradient-to-b from-green-800 to-green-900 text-white z-50
-        transform transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 h-full bg-gradient-to-br from-green-700 via-green-800 to-green-900 text-white z-50
+        transform transition-all duration-300 ease-in-out backdrop-blur-sm
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0 md:relative
-        w-72 shadow-2xl
+        md:translate-x-0 md:fixed
+        w-64 shadow-2xl border-r border-green-600/20
       `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-green-700">
+        <div className="flex items-center justify-between p-6 border-b border-green-600/30 bg-green-800/20">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-              <LayoutDashboard size={20} />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+              <LayoutDashboard size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-xl">Bonsai Admin</h1>
-              <p className="text-xs text-green-300">Management Panel</p>
+              <h1 className="font-bold text-xl bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">Bonsai Admin</h1>
+              <p className="text-xs text-green-300 font-medium">Management Panel</p>
             </div>
           </div>
           <button
             onClick={toggleSidebar}
-            className="md:hidden p-2 rounded-lg hover:bg-green-700 transition-colors"
+            className="md:hidden p-2 rounded-lg hover:bg-green-700/50 transition-all duration-200 hover:scale-105"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
         {/* User Info */}
-        <div className="p-4 border-b border-green-700">
+        <div className="p-4 border-b border-green-600/30 bg-green-800/10">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-              <Users size={20} />
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
+              <Users size={18} className="text-white" />
             </div>
             <div className="flex-1">
-              <p className="font-medium text-sm">{user?.name || 'Admin'}</p>
-              <p className="text-xs text-green-300 capitalize">{user?.role || 'user'}</p>
+              <p className="font-semibold text-sm text-white">{user?.name || 'Admin'}</p>
+              <p className="text-xs text-green-300 capitalize font-medium">{user?.role || 'user'}</p>
             </div>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto sidebar-scroll max-h-[calc(100vh-200px)]" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+        <nav className="flex-1 p-4 overflow-y-auto sidebar-scroll max-h-[calc(100vh-200px)] bg-green-800/5" style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
           {/* Dashboard */}
           <MenuItem 
             to="/admin/dashboard" 
@@ -247,13 +247,13 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
           </MenuItem>
 
           {/* Manager Only Sections */}
-          {isManager && (
+        {isManager && (
             <>
               {/* Staff Management */}
               <DropdownItem
                 icon={FaProductHunt}
                 isOpen={roleMenuOpen}
-                onClick={() => setRoleMenuOpen(!roleMenuOpen)}
+              onClick={() => setRoleMenuOpen(!roleMenuOpen)}
                 subItems={[
                   { to: '/admin/staffs', label: '📦 Tất cả Staff' },
                   { to: '/admin/register', label: '📦 Tạo tài khoản Staff' },
@@ -288,16 +288,16 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-green-700">
+        <div className="p-4 border-t border-green-600/30 bg-green-800/10">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg transition-all duration-200 hover:bg-red-600 hover:text-white text-green-100 group"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-200 hover:bg-gradient-to-r hover:from-red-600 hover:to-red-700 hover:text-white text-green-100 group shadow-sm"
           >
-            <LogOut size={20} className="group-hover:scale-110 transition-transform" />
-            <span className="font-medium">Đăng xuất</span>
+            <LogOut size={20} className="group-hover:scale-110 transition-transform duration-200" />
+            <span className="font-semibold">Đăng xuất</span>
           </button>
         </div>
-      </div>
+            </div>
     </>
   );
 };
