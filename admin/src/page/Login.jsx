@@ -10,7 +10,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5001/api/users/login', {
+      const res = await axios.post('https://tree-mmpq.onrender.com/api/users/login', {
         email,
         password,
       });
