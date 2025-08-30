@@ -7,14 +7,20 @@ const orderRouter = express.Router();
 // 📌 Create a new order
 orderRouter.post('/', async (req, res) => {
   try {
-    const { customer, items, total } = req.body;
-    console.log('📦 Backend - Đang tạo đơn hàng:', { customer, items, total });
+    const { customer, items, total, paymentMethod, orderId } = req.body;
+    console.log('📦 Backend - Đang tạo đơn hàng:', { customer, items, total, paymentMethod, orderId });
 
     if (!customer || !items || !total) {
       return res.status(400).json({ message: 'Thiếu thông tin đơn hàng' });
     }
 
-    const newOrder = new Order({ customer, items, total });
+    const newOrder = new Order({ 
+      customer, 
+      items, 
+      total, 
+      paymentMethod: paymentMethod || 'cod',
+      orderId: orderId || `ORDER_${Date.now()}`
+    });
     const saved = await newOrder.save();
     console.log('✅ Backend - Đơn hàng đã tạo:', saved);
 
