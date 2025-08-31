@@ -32,6 +32,15 @@ const DashboardPage = () => {
       try {
         setLoading(true);
         
+        // Get token from localStorage
+        const token = localStorage.getItem('token');
+        console.log('Token:', token ? 'Found' : 'Not found');
+        if (!token) {
+          console.error('No token found');
+          setLoading(false);
+          return;
+        }
+
         // Fetch all data in parallel
         const [
           ordersResponse,
@@ -39,21 +48,56 @@ const DashboardPage = () => {
           usersResponse,
           categoriesResponse
         ] = await Promise.all([
-          axios.get('https://tree-mmpq.onrender.com/api/orders'),
-          axios.get('https://tree-mmpq.onrender.com/api/products'),
-          axios.get('https://tree-mmpq.onrender.com/api/users'),
-          axios.get('https://tree-mmpq.onrender.com/api/categories')
+          axios.get('https://tree-mmpq.onrender.com/api/orders', {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }),
+          axios.get('https://tree-mmpq.onrender.com/api/products', {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }),
+          axios.get('https://tree-mmpq.onrender.com/api/users', {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }),
+          axios.get('https://tree-mmpq.onrender.com/api/categories', {
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          })
         ]);
 
-        const orders = ordersResponse.data.orders || [];
-        const products = productsResponse.data.products || [];
-        const users = usersResponse.data.users || [];
-        const categories = categoriesResponse.data.categories || [];
+        const orders = ordersResponse.data || [];
+        const products = productsResponse.data || [];
+        const users = usersResponse.data || [];
+        const categories = categoriesResponse.data || [];
+
+        // Debug logging
+        console.log('Orders response:', ordersResponse.data);
+        console.log('Products response:', productsResponse.data);
+        console.log('Users response:', usersResponse.data);
+        console.log('Categories response:', categoriesResponse.data);
+        
+        console.log('Orders count:', orders.length);
+        console.log('Products count:', products.length);
+        console.log('Users count:', users.length);
+        console.log('Categories count:', categories.length);
 
         // Calculate revenue data
         const monthlyRevenue = orders
           .filter(order => order.status === 'completed')
-          .reduce((total, order) => total + (order.totalAmount || 0), 0);
+          .reduce((total, order) => total + (order.total || 0), 0);
 
         // Generate revenue chart data (last 12 months)
         const revenueData = [...Array(12)].map((_, i) => {
@@ -65,7 +109,7 @@ const DashboardPage = () => {
                    orderDate.getFullYear() === date.getFullYear() &&
                    order.status === 'completed';
           });
-          const monthRevenue = monthOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+          const monthRevenue = monthOrders.reduce((total, order) => total + (order.total || 0), 0);
           
           return {
             name: date.toLocaleString('vi', { month: 'short' }),
@@ -91,7 +135,7 @@ const DashboardPage = () => {
             return orderDate.toDateString() === date.toDateString() &&
                    order.status === 'completed';
           });
-          const dayRevenue = dayOrders.reduce((total, order) => total + (order.totalAmount || 0), 0);
+          const dayRevenue = dayOrders.reduce((total, order) => total + (order.total || 0), 0);
           
           return {
             name: date.toLocaleString('vi', { weekday: 'short' }),
@@ -129,6 +173,16 @@ const DashboardPage = () => {
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 5);
 
+        console.log('Monthly revenue:', monthlyRevenue);
+        console.log('Revenue data:', revenueData);
+        console.log('Dashboard data:', {
+          monthlyRevenue,
+          totalOrders: orders.length,
+          totalProducts: products.length,
+          totalUsers: users.length,
+          recentOrders: recentOrders.length
+        });
+
         setDashboardData({
           revenue: revenueData,
           orders: orders,
@@ -146,6 +200,8 @@ const DashboardPage = () => {
 
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
       } finally {
         setLoading(false);
       }
@@ -266,7 +322,7 @@ const DashboardPage = () => {
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-sm">{order.totalAmount?.toLocaleString()} VNĐ</p>
+                                 <p className="font-semibold text-sm">{order.total?.toLocaleString()} VNĐ</p>
                 <span className={`text-xs px-2 py-1 rounded ${
                   order.status === 'completed' ? 'bg-green-100 text-green-800' :
                   order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :

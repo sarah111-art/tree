@@ -143,7 +143,7 @@ const Warehouse= () => {
         </thead>
         <tbody>
           {filteredProducts.map((p) => (
-            <tr key={p._id} className="hover:bg-gray-50">
+            <tr key={p._id} className="hover:bg-gray-100">
               <td className="p-2 border">{p.name}</td>
               <td className="p-2 border">
                 <div className="flex items-center gap-2">
