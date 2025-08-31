@@ -25,6 +25,8 @@ import PostList from './page/Post/PostList';
 import ActivityLog from './page/Staff/ActivityLog';
 import ContactList from './page/Contact/ContactList';
 import QRManager from './page/Payment/QRManager';
+import UserList from './page/Users/UserList';
+import UserDetail from './page/Users/UserDetail';
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = '$';
 
@@ -96,6 +98,8 @@ function App() {
               <Route path="/admin/banners/add" element={<AddBanner />} />
               <Route path="/admin/banners/dashboard" element={<BannerDashboard />} />
               <Route path="/admin/posts" element={<PostList />} />
+              <Route path="/admin/users" element={<UserList />} />
+              <Route path="/admin/users/:userId" element={<UserDetail />} />
               <Route path="/admin/activity-logs" element={<ActivityLog />} />
               <Route path="/admin/contact" element={<ContactList />} />
               <Route path="/admin/qr" element={<QRManager />} />

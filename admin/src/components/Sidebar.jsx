@@ -229,9 +229,7 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
             isOpen={userMenuOpen}
             onClick={() => setUserMenuOpen(!userMenuOpen)}
             subItems={[
-              { to: '/admin/products', label: '📦 Danh sách người dùng' },
-              { to: '/admin/products/add', label: '➕ Xem chi tiết' },
-              { to: '/admin/products/add', label: '➕ Khóa/mở tài khoản' }
+              { to: '/admin/users', label: '📦 Danh sách người dùng' }
             ]}
           >
             Quản lý Người Dùng
