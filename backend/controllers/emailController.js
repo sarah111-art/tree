@@ -31,21 +31,38 @@ export const testEmail = async (req, res) => {
 export const sendInvoiceEmail = async (req, res) => {
   try {
     console.log('📧 Bắt đầu gửi email hóa đơn...');
-    console.log('📧 Request body:', JSON.stringify(req.body, null, 2));
-    console.log('📧 Dữ liệu được parse:', {
+    console.log('📧 Raw body:', JSON.stringify(req.body, null, 2));
+    // Chuẩn hoá dữ liệu đầu vào để tránh lỗi 400/500 do khác cấu trúc
+    const body = req.body || {};
+    const node = body.order || {};
+    const normalizedOrderId = body.orderId || node._id || node.orderNumber || body._id || `ORDER_${Date.now()}`;
+    const normalizedCustomerEmail = body.customerEmail || node.customer?.email || body.email || '';
+    const normalizedCustomerName = body.customerName || node.customer?.name || body.name || '';
+    const normalizedOrderDetails = body.orderDetails || {
+      items: node.items || [],
+      total: node.total,
+      paymentMethod: node.paymentMethod,
+      orderDate: node.createdAt,
+      shippingAddress: node.customer?.address,
+      phone: node.customer?.phone,
+    };
+
+    // Gán về các tên dùng phía dưới (sau khi đã khởi tạo đầy đủ)
+    const orderId = normalizedOrderId;
+    const customerEmail = normalizedCustomerEmail;
+    const customerName = normalizedCustomerName;
+    const orderDetails = normalizedOrderDetails;
+
+    console.log('📧 Parsed:', {
       orderId,
       customerEmail,
       customerName,
-      orderDetails: {
-        items: orderDetails?.items?.length || 0,
-        total: orderDetails?.total,
-        paymentMethod: orderDetails?.paymentMethod,
-        phone: orderDetails?.phone,
-        shippingAddress: orderDetails?.shippingAddress
-      }
+      items: Array.isArray(orderDetails?.items) ? orderDetails.items.length : 0,
+      total: orderDetails?.total,
+      paymentMethod: orderDetails?.paymentMethod,
+      phone: orderDetails?.phone,
+      shippingAddress: orderDetails?.shippingAddress,
     });
-    
-    const { orderId, customerEmail, customerName, orderDetails } = req.body;
 
     // Kiểm tra dữ liệu đầu vào
     if (!orderId) {
@@ -78,13 +95,15 @@ export const sendInvoiceEmail = async (req, res) => {
       });
     }
     
-    console.log('🔍 Kiểm tra orderDetails.total:', orderDetails.total);
-    if (!orderDetails.total || orderDetails.total <= 0) {
-      console.error('❌ Thiếu hoặc sai tổng tiền:', orderDetails.total);
-      return res.status(400).json({ 
-        message: 'Thiếu tổng tiền đơn hàng',
-        received: orderDetails.total 
-      });
+    // Tính lại tổng tiền nếu thiếu/không hợp lệ thay vì trả 400
+    let computedTotal = Number(orderDetails.total || 0);
+    if (!computedTotal || computedTotal <= 0) {
+      computedTotal = (orderDetails.items || []).reduce((sum, it) => {
+        const price = Number(it.price || 0);
+        const qty = Number(it.quantity || 1);
+        return sum + price * qty;
+      }, 0);
+      console.log('🧮 Tổng tiền được tính lại:', computedTotal);
     }
 
     // Tạo order object để tương thích với code hiện tại
@@ -98,7 +117,7 @@ export const sendInvoiceEmail = async (req, res) => {
         address: orderDetails.shippingAddress || 'N/A'
       },
       items: orderDetails.items,
-      total: orderDetails.total,
+      total: computedTotal,
       paymentMethod: orderDetails.paymentMethod || 'cod',
       createdAt: orderDetails.orderDate || new Date().toISOString(),
       status: 'pending'
@@ -110,9 +129,10 @@ export const sendInvoiceEmail = async (req, res) => {
         MAIL_USER: !!process.env.MAIL_USER,
         MAIL_PASS: !!process.env.MAIL_PASS
       });
-      return res.status(500).json({ 
+      // Không chặn luồng đặt hàng
+      return res.json({ 
         success: false, 
-        message: 'Chưa cấu hình email server' 
+        message: 'Chưa cấu hình email server. Bỏ qua bước gửi email.' 
       });
     }
 
@@ -127,8 +147,13 @@ export const sendInvoiceEmail = async (req, res) => {
     console.log('📧 Gửi email đến:', order.customer.email);
     console.log('📧 Từ email:', process.env.MAIL_USER);
 
-    // Tạo PDF hóa đơn
-    const doc = new jsPDF();
+    console.log('🧾 Bắt đầu tạo PDF hoá đơn');
+    let pdfBuffer = null;
+    let pdfError = null;
+    let doc;
+    try {
+      // Tạo PDF hóa đơn
+      doc = new jsPDF();
     
     // Header
     doc.setFontSize(20);
@@ -228,9 +253,14 @@ export const sendInvoiceEmail = async (req, res) => {
     doc.text('Cam on quy khach da mua hang!', 105, yPosition + 30, { align: 'center' });
     doc.text('Hen gap lai quy khach!', 105, yPosition + 35, { align: 'center' });
     
-    // Convert PDF to base64 
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
-    const pdfBuffer = Buffer.from(pdfBase64, 'base64');
+      // Convert PDF to base64 
+      const pdfBase64 = doc.output('datauristring').split(',')[1];
+      pdfBuffer = Buffer.from(pdfBase64, 'base64');
+      console.log('🧾 PDF đã tạo xong, kích thước (bytes):', pdfBuffer.length);
+    } catch (e) {
+      pdfError = e;
+      console.error('❌ Lỗi khi tạo PDF:', e?.message || e);
+    }
 
     // Email content
     const mailOptions = {
@@ -288,13 +318,13 @@ export const sendInvoiceEmail = async (req, res) => {
           </div>
         </div>
       `,
-      attachments: [
+      attachments: pdfBuffer ? [
         {
           filename: `hoa-don-${order.orderNumber || order._id}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf'
         }
-      ]
+      ] : []
     };
 
     // Gửi email
@@ -303,39 +333,34 @@ export const sendInvoiceEmail = async (req, res) => {
       from: mailOptions.from,
       to: mailOptions.to,
       subject: mailOptions.subject,
-      hasAttachments: mailOptions.attachments?.length > 0
+      hasAttachments: mailOptions.attachments?.length > 0,
+      pdfError: pdfError ? (pdfError?.message || String(pdfError)) : null
     });
     
-    const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email đã gửi thành công:', result.messageId);
+    try {
+      const result = await transporter.sendMail(mailOptions);
+      console.log('✅ Email đã gửi thành công:', result.messageId);
 
-    res.json({ 
-      success: true, 
-      message: 'Hóa đơn đã được gửi qua email thành công!',
-      messageId: result.messageId
-    });
+      return res.json({ 
+        success: true, 
+        message: 'Hóa đơn đã được gửi qua email thành công!',
+        messageId: result.messageId
+      });
+    } catch (sendErr) {
+      console.error('❌ Gửi email thất bại, nhưng không chặn đơn hàng:', sendErr?.message || sendErr);
+      // Trả về 200 để frontend không xem là lỗi nghiêm trọng
+      return res.json({
+        success: false,
+        message: 'Không gửi được email hóa đơn, nhưng đơn hàng vẫn được tạo.'
+      });
+    }
 
   } catch (error) {
-    console.error('❌ Lỗi gửi email:', error);
-    
-    // Chi tiết lỗi để debug
-    if (error.code === 'EAUTH') {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Lỗi xác thực email. Vui lòng kiểm tra MAIL_USER và MAIL_PASS.' 
-      });
-    }
-    
-    if (error.code === 'ECONNECTION') {
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Không thể kết nối đến email server.' 
-      });
-    }
-
-    res.status(500).json({ 
-      success: false, 
-      message: 'Lỗi gửi email hóa đơn: ' + error.message 
+    console.error('❌ Lỗi tổng khi xử lý gửi email:', error);
+    // Luôn trả 200 để không chặn checkout
+    return res.json({
+      success: false,
+      message: 'Gặp lỗi khi tạo/gửi hóa đơn qua email. Đơn hàng vẫn hợp lệ.'
     });
   }
 };
