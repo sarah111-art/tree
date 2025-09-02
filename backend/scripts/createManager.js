@@ -26,6 +26,7 @@ async function createManager() {
     email: 'admin@bonsai.com',
     password: hashedPassword,
     role: 'manager',
+    phone: '0123456789',
   });
 
   await manager.save();
