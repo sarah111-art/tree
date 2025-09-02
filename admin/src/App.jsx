@@ -27,6 +27,7 @@ import ContactList from './page/Contact/ContactList';
 import QRManager from './page/Payment/QRManager';
 import UserList from './page/Users/UserList';
 import UserDetail from './page/Users/UserDetail';
+import Report from './page/Report/Report';
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 export const currency = '$';
 
@@ -103,6 +104,8 @@ function App() {
               <Route path="/admin/activity-logs" element={<ActivityLog />} />
               <Route path="/admin/contact" element={<ContactList />} />
               <Route path="/admin/qr" element={<QRManager />} />
+              <Route path="/admin/report" element={<Report />} />
+
             </Routes>
           </div>
         </div>

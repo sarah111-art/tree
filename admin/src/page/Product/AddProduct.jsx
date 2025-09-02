@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
 import { useNavigate } from 'react-router-dom';
+import { PageLoading } from '../../components/Loading';
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -24,11 +25,13 @@ const AddProduct = () => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get(`${backendUrl}/api/categories`)
       .then(res => setCategories(res.data))
-      .catch(err => console.error("Không thể load danh mục:", err));
+      .catch(err => console.error("Không thể load danh mục:", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleImageUpload = async (e) => {
@@ -85,6 +88,10 @@ const AddProduct = () => {
       alert("❌ Lỗi khi thêm sản phẩm!");
     }
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white shadow-md rounded-md">

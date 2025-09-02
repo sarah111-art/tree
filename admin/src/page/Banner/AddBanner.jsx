@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
+import { PageLoading } from '../../components/Loading';
 
 export default function AddBanner() {
   const [banners, setBanners] = useState([]);
@@ -16,14 +17,21 @@ const [form, setForm] = useState({
 });
 
   const [editing, setEditing] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchBanners();
   }, []);
 
   const fetchBanners = async () => {
-    const res = await axios.get(`${backendUrl}/api/banners`);
-    setBanners(res.data);
+    try {
+      const res = await axios.get(`${backendUrl}/api/banners`);
+      setBanners(res.data);
+    } catch (err) {
+      console.error('Lỗi khi tải banners:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -87,6 +95,10 @@ const handleSubmit = async (e) => {
       fetchBanners();
     }
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -177,7 +189,7 @@ const handleSubmit = async (e) => {
         </thead>
         <tbody>
           {banners.map((b) => (
-            <tr key={b._id} className="hover:bg-gray-50">
+            <tr key={b._id} className="hover:bg-gray-100">
               <td className="p-2 border">
                 <img src={b.image} alt="banner" className="w-28 h-14 object-cover" />
               </td>

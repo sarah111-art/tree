@@ -69,7 +69,7 @@ const ProductList = () => {
            </thead>
           <tbody>
                          {products.map(product => (
-               <tr key={product._id} className="hover:bg-gray-50 border-b border-gray-100">
+               <tr key={product._id} className="hover:bg-gray-100 border-b border-gray-100">
                  <td className="px-4 py-3">
                    {product.images && product.images.length > 0 ? (
                      <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />

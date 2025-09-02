@@ -4,6 +4,7 @@ import { backendUrl } from '../../App';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import dayjs from 'dayjs';
+import { PageLoading } from '../../components/Loading';
 
 export default function PostList() {
   const [posts, setPosts] = useState([]);
@@ -21,6 +22,7 @@ export default function PostList() {
     metaDescription: '',
     metaKeywords: '',
   });
+  const [loading, setLoading] = useState(true);
 
   const fetchPosts = async () => {
     const res = await axios.get(`${backendUrl}/api/posts`);
@@ -33,8 +35,14 @@ export default function PostList() {
   };
 
   useEffect(() => {
-    fetchPosts();
-    fetchCategories();
+    const loadData = async () => {
+      try {
+        await Promise.all([fetchPosts(), fetchCategories()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 const handleUpload = async () => {
   const formData = new FormData();
@@ -112,6 +120,10 @@ const handleUpload = async () => {
     setFile(null);
     setEditingId(null);
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   const deletePost = async (id) => {
     if (window.confirm('Bạn có chắc muốn xoá bài viết này?')) {

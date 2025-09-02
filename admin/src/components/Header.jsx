@@ -50,25 +50,38 @@ const Header = ({ onOpenSidebar }) => {
     // Debounce search - wait 300ms after user stops typing
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        // Call real API
-        const response = await fetch(`http://localhost:5001/api/search?query=${encodeURIComponent(query)}`);
-        const data = await response.json();
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.error('No token found for search');
+          setSearchResults([]);
+          setIsSearching(false);
+          return;
+        }
+
+        // Call real API with proper headers
+        const response = await fetch(`https://tree-mmpq.onrender.com/api/search?query=${encodeURIComponent(query)}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         
-        if (data.results) {
-          setSearchResults(data.results);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Search API response:', data);
+          
+          if (data.results && Array.isArray(data.results)) {
+            setSearchResults(data.results);
+          } else {
+            setSearchResults([]);
+          }
+        } else {
+          console.error('Search API error:', response.status, response.statusText);
+          setSearchResults([]);
         }
       } catch (error) {
         console.error('❌ Lỗi search:', error);
-        // Fallback to mock data if API fails
-        const mockResults = [
-          { id: 1, type: 'product', title: 'Cây Bonsai Mini', subtitle: 'Sản phẩm', path: '/admin/products', icon: '📦' },
-          { id: 2, type: 'order', title: 'Đơn hàng #12345', subtitle: 'Khách hàng', path: '/admin/orders', icon: '📋' },
-          { id: 3, type: 'category', title: 'Danh mục Cây cảnh', subtitle: 'Danh mục sản phẩm', path: '/admin/categories', icon: '📁' },
-          { id: 4, type: 'user', title: 'Nguyễn Văn A', subtitle: 'user@example.com', path: '/admin/users', icon: '👤' },
-        ].filter(item => 
-          item.title.toLowerCase().includes(query.toLowerCase())
-        );
-        setSearchResults(mockResults);
+        setSearchResults([]);
       } finally {
         setIsSearching(false);
       }

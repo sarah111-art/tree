@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { backendUrl } from '../../App';
+import { PageLoading } from '../../components/Loading';
 
 export default function ActivityLog() {
   const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchLogs();
@@ -17,8 +19,14 @@ export default function ActivityLog() {
       setLogs(res.data);
     } catch (err) {
       console.error('Lỗi khi lấy log:', err);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="p-6 space-y-4">

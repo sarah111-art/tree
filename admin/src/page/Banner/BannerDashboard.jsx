@@ -3,11 +3,13 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
 import dayjs from 'dayjs';
+import { PageLoading } from '../../components/Loading';
 
 export default function BannerDashboard() {
   const [banners, setBanners] = useState([]);
   const [position, setPosition] = useState('');
   const [filter, setFilter] = useState('active'); // active | expired | upcoming
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchData();
@@ -19,6 +21,8 @@ export default function BannerDashboard() {
       setBanners(res.data);
     } catch (err) {
       console.error('Lỗi tải banner:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,6 +44,10 @@ export default function BannerDashboard() {
 
     return matchStatus && matchPosition;
   });
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="p-6 space-y-4">

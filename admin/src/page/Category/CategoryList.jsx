@@ -296,7 +296,7 @@ const CategoryList = () => {
           </thead>
           <tbody>
             {categories.map((cat) => (
-              <tr key={cat._id} className="hover:bg-gray-50">
+              <tr key={cat._id} className="hover:bg-gray-100">
                 <td className="p-2 border">{cat.name}</td>
                 <td className="p-2 border text-gray-500">{cat.slug}</td>
                 <td className="p-2 border text-gray-600">

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
 import { useNavigate, useParams } from 'react-router-dom';
+import { PageLoading } from '../../components/Loading';
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -25,6 +26,7 @@ const EditProduct = () => {
   });
 
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,11 +47,17 @@ const EditProduct = () => {
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu:", err);
         alert("❌ Không thể tải thông tin sản phẩm!");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
   }, [id]);
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];

@@ -237,9 +237,9 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
 
           {/* Statistics */}
           <MenuItem 
-            to="/admin/users" 
+            to="/admin/report" 
             icon={ChartAreaIcon}
-            isActive={location.pathname === '/admin/users'}
+            isActive={location.pathname === '/admin/report'}
           >
             Thống kê & Báo cáo
           </MenuItem>

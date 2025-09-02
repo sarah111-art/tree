@@ -169,7 +169,7 @@ export default function AdminOrderList() {
           </thead>
           <tbody>
             {orders.map(order => (
-              <tr key={order._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors duration-150">
+              <tr key={order._id} className="border-b border-gray-200 hover:bg-gray-100 transition-colors duration-150">
                 <td className="px-4 py-3 text-left">{order.customer.name}</td>
                 <td className="px-4 py-3 text-left">{order.customer.phone}</td>
                 <td className="px-4 py-3 text-left">{order.customer.email}</td>
