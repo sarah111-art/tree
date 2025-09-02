@@ -163,7 +163,7 @@ const UserDetail = () => {
             <div>
               <button
                 onClick={() => navigate('/admin/users')}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -324,7 +324,7 @@ const UserDetail = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {userOrders.map((order) => (
-                        <tr key={order._id} className="hover:bg-gray-50">
+                        <tr key={order._id} className="hover:bg-gray-100">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{order._id.slice(-6)}
                           </td>

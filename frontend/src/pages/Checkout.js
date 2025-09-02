@@ -125,13 +125,51 @@ const Checkout = () => {
       );
       console.log('✅ Đơn hàng đã tạo:', res.data);
 
+      // Gửi email hóa đơn cho khách hàng (gửi kèm cả dạng phẳng và dạng legacy {order})
+      try {
+        const emailPayload = {
+          orderId: res.data?._id || order.orderId,
+          customerEmail: form.email,
+          customerName: form.name,
+          orderDetails: {
+            items: cartItems,
+            total: totalAmount,
+            paymentMethod,
+            orderDate: new Date().toISOString(),
+            shippingAddress: form.address,
+            phone: form.phone,
+          },
+          // Legacy compatibility
+          order: {
+            _id: res.data?._id || order.orderId,
+            orderNumber: res.data?.orderNumber || undefined,
+            createdAt: new Date().toISOString(),
+            total: totalAmount,
+            paymentMethod,
+            items: cartItems,
+            customer: {
+              name: form.name,
+              email: form.email,
+              phone: form.phone,
+              address: form.address,
+            },
+          },
+        };
+
+        await axios.post(`${backendUrl}/api/email/send-invoice`, emailPayload);
+        console.log('✅ Email hóa đơn đã được gửi');
+      } catch (emailError) {
+        console.error('❌ Lỗi gửi email hóa đơn:', emailError);
+        // Không block luồng chính nếu gửi email thất bại
+      }
+
       if (user) {
-        alert('✅ Đặt hàng thành công! Bạn có thể xem đơn hàng trong trang "Đơn hàng của tôi"');
+        alert('✅ Đặt hàng thành công! Hóa đơn đã được gửi về email của bạn.');
         setTimeout(() => {
           navigate('/don-hang');
         }, 2000);
       } else {
-        alert('✅ Đặt hàng thành công! Vui lòng đăng nhập để xem chi tiết đơn hàng của bạn.');
+        alert('✅ Đặt hàng thành công! Hóa đơn đã được gửi về email của bạn. Vui lòng đăng nhập để xem chi tiết đơn hàng.');
         setTimeout(() => {
           navigate('/dang-nhap');
         }, 2000);

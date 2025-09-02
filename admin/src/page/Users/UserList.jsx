@@ -221,7 +221,7 @@ const UserList = () => {
                 {users.map((user) => (
                   <tr 
                     key={user._id} 
-                    className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                    className="hover:bg-gray-100 cursor-pointer transition-colors duration-200"
                     onClick={() => navigate(`/admin/users/${user._id}`)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">

@@ -3,15 +3,23 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { backendUrl } from '../../App';
 import { FiDownload } from 'react-icons/fi';
+import { PageLoading } from '../../components/Loading';
 
 const Warehouse= () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filter, setFilter] = useState({ category: '', status: '', search: '' });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
+    const loadData = async () => {
+      try {
+        await Promise.all([fetchProducts(), fetchCategories()]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, []);
 
   const fetchProducts = async () => {
@@ -84,6 +92,10 @@ const Warehouse= () => {
     a.download = 'warehouse.csv';
     a.click();
   };
+
+  if (loading) {
+    return <PageLoading />;
+  }
 
   return (
     <div className="p-6">

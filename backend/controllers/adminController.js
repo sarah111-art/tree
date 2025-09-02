@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 
 export const registerStaff = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone } = req.body;
 
     if (role !== 'staff') {
       return res.status(403).json({ message: 'Chỉ được tạo tài khoản staff' });
@@ -25,6 +25,7 @@ export const registerStaff = async (req, res) => {
       email,
       password: hashedPassword,
       role,
+      phone,
     });
 
     res.status(201).json({ message: 'Tạo tài khoản staff thành công', user: newUser });

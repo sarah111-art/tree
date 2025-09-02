@@ -4,18 +4,128 @@ import jsPDF from 'jspdf';
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'your-email@gmail.com',
-    pass: process.env.EMAIL_PASS || 'your-app-password'
-  }
+    user: process.env.MAIL_USER,
+    pass: process.env.MAIL_PASS,
+  },
 });
+
+// Test endpoint để kiểm tra API
+export const testEmail = async (req, res) => {
+  try {
+    console.log('🧪 Test endpoint được gọi');
+    console.log('🧪 Request body:', JSON.stringify(req.body, null, 2));
+    console.log('🧪 Request headers:', req.headers);
+    
+    res.json({ 
+      success: true, 
+      message: 'Test endpoint hoạt động bình thường',
+      receivedData: req.body,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Lỗi test endpoint:', error);
+    res.status(500).json({ message: 'Lỗi test endpoint' });
+  }
+};
 
 export const sendInvoiceEmail = async (req, res) => {
   try {
-    const { order } = req.body;
+    console.log('📧 Bắt đầu gửi email hóa đơn...');
+    console.log('📧 Request body:', JSON.stringify(req.body, null, 2));
+    console.log('📧 Dữ liệu được parse:', {
+      orderId,
+      customerEmail,
+      customerName,
+      orderDetails: {
+        items: orderDetails?.items?.length || 0,
+        total: orderDetails?.total,
+        paymentMethod: orderDetails?.paymentMethod,
+        phone: orderDetails?.phone,
+        shippingAddress: orderDetails?.shippingAddress
+      }
+    });
+    
+    const { orderId, customerEmail, customerName, orderDetails } = req.body;
 
-    if (!order) {
-      return res.status(400).json({ message: 'Thiếu thông tin đơn hàng' });
+    // Kiểm tra dữ liệu đầu vào
+    if (!orderId) {
+      console.error('❌ Thiếu orderId');
+      return res.status(400).json({ message: 'Thiếu mã đơn hàng' });
     }
+    
+    if (!customerEmail) {
+      console.error('❌ Thiếu email khách hàng');
+      return res.status(400).json({ message: 'Thiếu email khách hàng' });
+    }
+    
+    if (!customerName) {
+      console.error('❌ Thiếu tên khách hàng');
+      return res.status(400).json({ message: 'Thiếu tên khách hàng' });
+    }
+    
+    if (!orderDetails) {
+      console.error('❌ Thiếu chi tiết đơn hàng');
+      return res.status(400).json({ message: 'Thiếu chi tiết đơn hàng' });
+    }
+
+    // Kiểm tra các trường bắt buộc trong orderDetails
+    console.log('🔍 Kiểm tra orderDetails.items:', orderDetails.items);
+    if (!orderDetails.items || !Array.isArray(orderDetails.items) || orderDetails.items.length === 0) {
+      console.error('❌ Thiếu hoặc sai định dạng danh sách sản phẩm:', orderDetails.items);
+      return res.status(400).json({ 
+        message: 'Thiếu danh sách sản phẩm',
+        received: orderDetails.items 
+      });
+    }
+    
+    console.log('🔍 Kiểm tra orderDetails.total:', orderDetails.total);
+    if (!orderDetails.total || orderDetails.total <= 0) {
+      console.error('❌ Thiếu hoặc sai tổng tiền:', orderDetails.total);
+      return res.status(400).json({ 
+        message: 'Thiếu tổng tiền đơn hàng',
+        received: orderDetails.total 
+      });
+    }
+
+    // Tạo order object để tương thích với code hiện tại
+    const order = {
+      _id: orderId,
+      orderNumber: orderId,
+      customer: {
+        name: customerName,
+        email: customerEmail,
+        phone: orderDetails.phone || 'N/A',
+        address: orderDetails.shippingAddress || 'N/A'
+      },
+      items: orderDetails.items,
+      total: orderDetails.total,
+      paymentMethod: orderDetails.paymentMethod || 'cod',
+      createdAt: orderDetails.orderDate || new Date().toISOString(),
+      status: 'pending'
+    };
+
+    // Validate email configuration
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+      console.error('❌ Thiếu cấu hình email:', {
+        MAIL_USER: !!process.env.MAIL_USER,
+        MAIL_PASS: !!process.env.MAIL_PASS
+      });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Chưa cấu hình email server' 
+      });
+    }
+
+    // Validate order data
+    if (!order.customer?.email) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Khách hàng chưa có email' 
+      });
+    }
+
+    console.log('📧 Gửi email đến:', order.customer.email);
+    console.log('📧 Từ email:', process.env.MAIL_USER);
 
     // Tạo PDF hóa đơn
     const doc = new jsPDF();
@@ -118,13 +228,13 @@ export const sendInvoiceEmail = async (req, res) => {
     doc.text('Cam on quy khach da mua hang!', 105, yPosition + 30, { align: 'center' });
     doc.text('Hen gap lai quy khach!', 105, yPosition + 35, { align: 'center' });
     
-    // Convert PDF to base64
+    // Convert PDF to base64 
     const pdfBase64 = doc.output('datauristring').split(',')[1];
     const pdfBuffer = Buffer.from(pdfBase64, 'base64');
 
     // Email content
     const mailOptions = {
-      from: process.env.EMAIL_USER || 'your-email@gmail.com',
+      from: process.env.MAIL_USER,
       to: order.customer?.email,
       subject: `Hóa đơn đơn hàng #${order.orderNumber || order._id} - BONSAI SHOP`,
       html: `
@@ -188,18 +298,44 @@ export const sendInvoiceEmail = async (req, res) => {
     };
 
     // Gửi email
-    await transporter.sendMail(mailOptions);
+    console.log('📤 Đang gửi email...');
+    console.log('📤 Mail options:', {
+      from: mailOptions.from,
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      hasAttachments: mailOptions.attachments?.length > 0
+    });
+    
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email đã gửi thành công:', result.messageId);
 
     res.json({ 
       success: true, 
-      message: 'Hóa đơn đã được gửi qua email thành công!' 
+      message: 'Hóa đơn đã được gửi qua email thành công!',
+      messageId: result.messageId
     });
 
   } catch (error) {
     console.error('❌ Lỗi gửi email:', error);
+    
+    // Chi tiết lỗi để debug
+    if (error.code === 'EAUTH') {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Lỗi xác thực email. Vui lòng kiểm tra MAIL_USER và MAIL_PASS.' 
+      });
+    }
+    
+    if (error.code === 'ECONNECTION') {
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Không thể kết nối đến email server.' 
+      });
+    }
+
     res.status(500).json({ 
       success: false, 
-      message: 'Lỗi gửi email hóa đơn' 
+      message: 'Lỗi gửi email hóa đơn: ' + error.message 
     });
   }
 };
@@ -214,7 +350,6 @@ const getStatusText = (status) => {
   };
   return statusMap[status] || status;
 };
-
 const getPaymentMethodText = (method) => {
   const methodMap = {
     'cod': 'Thanh toán khi nhận hàng',
@@ -224,3 +359,4 @@ const getPaymentMethodText = (method) => {
   };
   return methodMap[method] || method || 'Thanh toán khi nhận hàng';
 };
+
