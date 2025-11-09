@@ -36,3 +36,19 @@ export const requireAdmin = (req, res, next) => {
     res.status(401).json({ message: 'Token không hợp lệ' });
   }
 };
+
+// Middleware tùy chọn: parse token nếu có, không bắt buộc
+export const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      console.log('✅ Optional auth: Token parsed:', decoded.email);
+    } catch (err) {
+      console.log('⚠️ Optional auth: Invalid token');
+    }
+  }
+  next();
+};

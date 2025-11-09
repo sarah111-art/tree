@@ -1,6 +1,7 @@
 // controllers/categoryController.js
 import Category from '../models/categoryModel.js';
 import slugify from 'slugify';
+import { logActivity } from '../utils/LogActivity.js';
 
 // Thêm danh mục
 export const createCategory = async (req, res) => {
@@ -19,6 +20,17 @@ export const createCategory = async (req, res) => {
       parent: parent || null, // 👈 gán parent nếu có
     });
 
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Thêm danh mục mới',
+        targetType: 'Category',
+        targetId: newCategory._id,
+        metadata: { name: newCategory.name, slug: newCategory.slug }
+      });
+    }
+
     res.status(201).json(newCategory);
   } catch (error) {
     res.status(500).json({ message: 'Error creating category', error });
@@ -31,16 +43,20 @@ export const createCategory = async (req, res) => {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().populate('parent', 'name slug');
 
     const formatted = categories.map((cat) => ({
       _id: cat._id,
       name: cat.name,
       slug: cat.slug,
       image: cat.image,
-      parent: cat.parent ? cat.parent.toString() : null,
+      parent: cat.parent || null,
       status: cat.status,
       description: cat.description,
+      isFeatured: cat.isFeatured,
+      metaTitle: cat.metaTitle,
+      metaDescription: cat.metaDescription,
+      metaKeywords: cat.metaKeywords,
     }));
 
     res.json(formatted);
@@ -69,6 +85,17 @@ export const updateCategory = async (req, res) => {
       { new: true }
     );
 
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Cập nhật danh mục',
+        targetType: 'Category',
+        targetId: updated._id,
+        metadata: { name: updated.name, changes: Object.keys(req.body) }
+      });
+    }
+
     res.json(updated);
   } catch (error) {
     res.status(500).json({ message: 'Error updating category', error });
@@ -80,7 +107,22 @@ export const updateCategory = async (req, res) => {
 export const deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
+    const category = await Category.findById(id);
+    if (!category) return res.status(404).json({ message: 'Không tìm thấy danh mục' });
+    
     await Category.findByIdAndDelete(id);
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Xóa danh mục',
+        targetType: 'Category',
+        targetId: id,
+        metadata: { name: category.name }
+      });
+    }
+    
     res.json({ message: 'Category deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting category', error });

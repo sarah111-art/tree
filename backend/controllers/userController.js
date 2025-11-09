@@ -26,8 +26,37 @@ export const login = async (req, res) => {
 }
 
 export const getAllUsers = async (req, res) => {
-  const users = await User.find()
-  res.json(users)
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count
+    const total = await User.countDocuments();
+    
+    // Get paginated users
+    const users = await User.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit);
+
+    console.log(`👥 Backend - Users trang ${page}/${totalPages} (${total} tổng):`, users.length);
+    
+    res.json({
+      users,
+      total,
+      totalPages,
+      currentPage: page,
+      perPage: limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    });
+  } catch (error) {
+    console.error('❌ Backend - Lỗi lấy danh sách users:', error);
+    res.status(500).json({ message: 'Lỗi lấy danh sách người dùng' });
+  }
 }
 
 export const getUserById = async (req, res) => {

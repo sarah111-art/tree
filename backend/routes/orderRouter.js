@@ -1,6 +1,7 @@
 import express from 'express';
 import Order from '../models/orderModel.js';
 import { sendInvoiceEmail } from '../controllers/emailController.js';
+import { logActivity } from '../utils/LogActivity.js';
 
 const orderRouter = express.Router();
 
@@ -36,6 +37,21 @@ orderRouter.post('/', async (req, res) => {
       // Không fail đơn hàng nếu gửi email thất bại
     }
 
+    // Phát sự kiện Socket.IO cho admin
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.emit('order:new', {
+          id: saved._id,
+          total: saved.total,
+          createdAt: saved.createdAt,
+          customerName: saved.customer?.name,
+        });
+      }
+    } catch (e) {
+      console.error('⚠️ Socket emit error:', e);
+    }
+
     res.status(201).json(saved);
   } catch (error) {
     console.error('❌ Backend - Lỗi tạo đơn hàng:', error);
@@ -43,12 +59,35 @@ orderRouter.post('/', async (req, res) => {
   }
 });
 
-// 📌 Get all orders (for admin)
+// 📌 Get all orders (for admin) with pagination
 orderRouter.get('/', async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
-    console.log('📋 Backend - Tất cả đơn hàng:', orders);
-    res.json(orders);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Get total count
+    const total = await Order.countDocuments();
+    
+    // Get paginated orders
+    const orders = await Order.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(total / limit);
+
+    console.log(`📋 Backend - Đơn hàng trang ${page}/${totalPages} (${total} tổng):`, orders.length);
+    
+    res.json({
+      orders,
+      total,
+      totalPages,
+      currentPage: page,
+      perPage: limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1
+    });
   } catch (err) {
     console.error('❌ Backend - Lỗi lấy tất cả đơn hàng:', err);
     res.status(500).json({ message: 'Lỗi lấy danh sách đơn hàng' });
@@ -58,12 +97,31 @@ orderRouter.get('/', async (req, res) => {
 // 📌 Update order status (admin)
 orderRouter.put('/:id/status', async (req, res) => {
   try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    
     const { status } = req.body;
     const updated = await Order.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true }
     );
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Cập nhật trạng thái đơn hàng',
+        targetType: 'Order',
+        targetId: updated._id,
+        metadata: { 
+          oldStatus: order.status, 
+          newStatus: status,
+          orderId: updated.orderId 
+        }
+      });
+    }
+    
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Lỗi cập nhật đơn hàng' });
@@ -84,11 +142,26 @@ orderRouter.get('/user/:email', async (req, res) => {
 // routes/orderRoutes.js
 orderRouter.put('/:id/paid', async (req, res) => {
   try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Không tìm thấy đơn hàng' });
+    
     const updated = await Order.findByIdAndUpdate(
       req.params.id,
       { isPaid: true },
       { new: true }
     );
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Cập nhật thanh toán đơn hàng',
+        targetType: 'Order',
+        targetId: updated._id,
+        metadata: { orderId: updated.orderId, isPaid: true }
+      });
+    }
+    
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Lỗi cập nhật trạng thái thanh toán' });

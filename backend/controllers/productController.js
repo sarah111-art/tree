@@ -1,5 +1,6 @@
 import Product from '../models/productModel.js';
 import Category from '../models/categoryModel.js';
+import { logActivity } from '../utils/LogActivity.js';
 
 export const createProduct = async (req, res) => {
   try {
@@ -19,6 +20,18 @@ export const createProduct = async (req, res) => {
     });
 
     await newProduct.save();
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Thêm sản phẩm mới',
+        targetType: 'Product',
+        targetId: newProduct._id,
+        metadata: { name: newProduct.name, price: newProduct.price }
+      });
+    }
+    
     res.status(201).json(newProduct);
   } catch (err) {
     console.error('❌ Lỗi tạo sản phẩm:', err.message);
@@ -39,7 +52,22 @@ export const getAllProducts = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    
     const updated = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Cập nhật sản phẩm',
+        targetType: 'Product',
+        targetId: updated._id,
+        metadata: { name: updated.name, changes: Object.keys(req.body) }
+      });
+    }
+    
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -48,7 +76,22 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    
     await Product.findByIdAndDelete(req.params.id);
+    
+    // Log activity for staff
+    if (req.user && (req.user.role === 'staff' || req.user.role === 'manager')) {
+      await logActivity({
+        staffId: req.user._id,
+        action: 'Xóa sản phẩm',
+        targetType: 'Product',
+        targetId: req.params.id,
+        metadata: { name: product.name }
+      });
+    }
+    
     res.json({ message: 'Xoá thành công' });
   } catch (err) {
     res.status(500).json({ error: err.message });
