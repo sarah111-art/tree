@@ -33,7 +33,7 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
 
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('adminInfo'));
-  const isManager = user?.role === 'manager';
+  const isManager = (user?.role || '').toLowerCase() === 'manager';
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -124,7 +124,7 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
               <LayoutDashboard size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-xl bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">Bonsai Admin</h1>
+              <h1 className="font-bold text-xl bg-gradient-to-r from-white to-green-200 bg-clip-text text-transparent">Còi Garden Admin</h1>
               <p className="text-xs text-green-300 font-medium">Management Panel</p>
             </div>
           </div>
@@ -267,7 +267,8 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
                 isOpen={settingsMenuOpen}
                 onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}
                 subItems={[
-                  { to: '/admin/qr', label: '➕ Cấu hình thanh toán' }
+                  { to: '/admin/qr', label: '➕ Cấu hình thanh toán' },
+                  { to: '/admin/footers', label: '📄 Quản lý Footer' }
                 ]}
               >
                 Cài Đặt Hệ thống

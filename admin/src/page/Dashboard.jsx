@@ -221,11 +221,11 @@ const DashboardPage = () => {
   const COLORS = ['#FF6384', '#36A2EB', '#4BC0C0', '#FFCE56', '#9966FF', '#FF9F40'];
 
   return (
-    <PageWrapper>
+    <PageWrapper className='p-6'>
       <div className="grid grid-cols-12 gap-4">
 
       {/* Revenue Chart */}
-      <div className="col-span-12 md:col-span-8 bg-white p-4 rounded shadow">
+      <div className="col-span-12 md:col-span-8 bg-white p-4 rounded shadow text-center">
         <h2 className="text-lg font-semibold mb-2">Doanh thu theo tháng</h2>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={dashboardData.revenue}>
@@ -253,7 +253,7 @@ const DashboardPage = () => {
       </div>
 
       {/* Monthly Revenue */}
-      <div className="col-span-12 md:col-span-4 bg-slate-800 text-white p-4 rounded shadow">
+      <div className="col-span-12 md:col-span-4 bg-green-700 text-white p-4 rounded shadow">
         <h2 className="text-sm uppercase">Doanh thu tháng này</h2>
         <p className="text-2xl font-bold mt-2">{dashboardData.monthlyRevenue.toLocaleString()} VNĐ</p>
         <p className="text-green-400 text-sm">↑ Tổng doanh thu đã hoàn thành</p>
@@ -291,7 +291,7 @@ const DashboardPage = () => {
         <h2 className="text-lg font-semibold mb-2">Sản phẩm bán chạy</h2>
         <div className="space-y-3">
           {dashboardData.topSellingProducts.map((product, index) => (
-            <div key={product.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+            <div key={product.id} className="flex items-center justify-between p-2 bg-gray-100 rounded">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
                   {index + 1}

@@ -3,45 +3,81 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageWrapper from '../../components/PageWrapper';
 import { TableLoading } from '../../components/Loading';
+import { backendUrl } from '../../App';
 
 const UserList = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  // Function to fetch users with pagination
+  const fetchUsers = async (page = currentPage, limit = perPage) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setError('Không tìm thấy token đăng nhập');
+        setLoading(false);
+        return;
+      }
+
+      console.log(`🔄 Fetching users: page=${page}, limit=${limit}`);
+      console.log(`🌐 Backend URL: ${backendUrl}`);
+      const url = `${backendUrl}/api/users?page=${page}&limit=${limit}`;
+      console.log(`📡 API URL: ${url}`);
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      console.log('📦 Users API Response:', response.data);
+      
+      // Handle both new paginated response and old response format
+      if (response.data.users) {
+        // New paginated response format
+        setUsers(response.data.users);
+        setTotalUsers(response.data.total);
+        setTotalPages(response.data.totalPages);
+        console.log(`✅ Paginated: ${response.data.users.length} users, total: ${response.data.total}, pages: ${response.data.totalPages}`);
+      } else if (Array.isArray(response.data)) {
+        // Fallback for old response format (array of users)
+        setUsers(response.data);
+        setTotalUsers(response.data.length);
+        setTotalPages(Math.ceil(response.data.length / limit));
+        console.log(`⚠️ Fallback: ${response.data.length} users, calculated pages: ${Math.ceil(response.data.length / limit)}`);
+      } else {
+        console.error('❌ Unexpected response format:', response.data);
+        setUsers([]);
+        setTotalUsers(0);
+        setTotalPages(1);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching users:', error);
+      setError('Không thể tải danh sách người dùng');
+      // Reset to empty state on error
+      setUsers([]);
+      setTotalUsers(0);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          setError('Không tìm thấy token đăng nhập');
-          setLoading(false);
-          return;
-        }
-
-        const response = await axios.get('https://tree-mmpq.onrender.com/api/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-
-        console.log('Users response:', response.data);
-        setUsers(response.data || []);
-      } catch (error) {
-        console.error('Error fetching users:', error);
-        setError('Không thể tải danh sách người dùng');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchUsers();
-  }, []);
+  }, [currentPage, perPage]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -66,6 +102,28 @@ const UserList = () => {
         User
       </span>
     );
+  };
+
+  // Pagination handlers
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handlePerPageChange = (newPerPage) => {
+    setPerPage(newPerPage);
+    setCurrentPage(1); // Reset to first page when changing per page
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
   if (loading) {
@@ -105,7 +163,7 @@ const UserList = () => {
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý người dùng</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Tổng cộng {users.length} người dùng
+            Tổng cộng {totalUsers} người dùng
           </p>
         </div>
 
@@ -122,7 +180,7 @@ const UserList = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-500">Tổng người dùng</p>
-                <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
+                <p className="text-2xl font-semibold text-gray-900">{totalUsers}</p>
               </div>
             </div>
           </div>
@@ -195,7 +253,7 @@ const UserList = () => {
           
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-10 text-white">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Người dùng
@@ -278,6 +336,89 @@ const UserList = () => {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-lg shadow border">
+            {/* Per page selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Hiển thị:</span>
+              <select
+                value={perPage}
+                onChange={(e) => handlePerPageChange(Number(e.target.value))}
+                className="border border-gray-300 rounded px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+              <span className="text-sm text-gray-600">người dùng/trang</span>
+            </div>
+
+            {/* Page info */}
+            <div className="text-sm text-gray-600">
+              Trang {currentPage} / {totalPages} ({totalUsers} người dùng)
+            </div>
+
+            {/* Pagination buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  currentPage === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                ← Trước
+              </button>
+
+              {/* Page numbers */}
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                  currentPage === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+              >
+                Sau →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </PageWrapper>
   );

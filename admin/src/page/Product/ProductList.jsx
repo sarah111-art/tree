@@ -28,7 +28,10 @@ const ProductList = () => {
     if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
       try {
         setDeletingId(id);
-        await axios.delete(`${backendUrl}/api/products/${id}`);
+        const token = localStorage.getItem('token');
+        await axios.delete(`${backendUrl}/api/products/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         fetchProducts();
       } catch (err) {
         console.error("❌ Xoá thất bại:", err.message);
@@ -43,7 +46,7 @@ const ProductList = () => {
   }, []);
 
   return (
-    <PageWrapper>
+    <PageWrapper className='p-6'>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">🛒 Danh sách sản phẩm</h2>
         <Link to="/admin/products/add" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-sm">
@@ -57,7 +60,7 @@ const ProductList = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full">
-                     <thead className="bg-gray-50 text-left">
+                     <thead className="bg-green-100 text-left">
              <tr>
                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Ảnh</th>
                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Tên</th>

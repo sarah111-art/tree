@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Bell, Mail, Menu } from 'lucide-react';
 import avt from '../assets/avatar/avt.jpg';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo/logo.png';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { backendUrl } from '../App';
 
 
 const Header = ({ onOpenSidebar }) => {
@@ -123,6 +125,105 @@ const Header = ({ onOpenSidebar }) => {
     };
   }, []);
 
+  // Socket.IO - thông báo đơn hàng mới
+  const [hasNewOrder, setHasNewOrder] = useState(false);
+  const [lastOrderInfo, setLastOrderInfo] = useState(null);
+  const [showOrderPanel, setShowOrderPanel] = useState(false);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  // Contacts panel/state
+  const [showContactPanel, setShowContactPanel] = useState(false);
+  const [recentContacts, setRecentContacts] = useState([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [hasUnreadContact, setHasUnreadContact] = useState(false);
+
+  useEffect(() => {
+    // Kết nối socket chỉ khi đã đăng nhập
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // lazy import để tránh thêm lib vào bundle nếu không cần
+    let socket;
+    import('socket.io-client').then(({ io }) => {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+      socket = io(backendUrl, { transports: ['websocket'], autoConnect: true });
+
+      socket.on('connect', () => {
+        console.log('🔌 Socket connected', socket.id);
+      });
+
+      socket.on('order:new', (payload) => {
+        setHasNewOrder(true);
+        setLastOrderInfo(payload);
+      });
+
+      socket.on('disconnect', () => {
+        console.log('🔌 Socket disconnected');
+      });
+    });
+
+    return () => {
+      try { socket && socket.disconnect(); } catch {}
+    };
+  }, []);
+
+  const clearNewOrder = () => setHasNewOrder(false);
+
+  const fetchRecentOrders = async () => {
+    try {
+      setOrdersLoading(true);
+      const res = await axios.get(`${backendUrl}/api/orders`, {
+        params: { page: 1, limit: 10 },
+      });
+      // API trả về { orders, total, ... }
+      setRecentOrders(res.data.orders || []);
+    } catch (e) {
+      console.error('❌ Lỗi lấy đơn hàng mới:', e);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleBellClick = () => {
+    const next = !showOrderPanel;
+    setShowOrderPanel(next);
+    if (next) {
+      clearNewOrder();
+      fetchRecentOrders();
+    }
+  };
+
+  const fetchRecentContacts = async () => {
+    try {
+      setContactsLoading(true);
+      const res = await axios.get(`${backendUrl}/api/contacts`, {
+        params: { page: 1, limit: 10 },
+      });
+      const list = res.data.data || [];
+      setRecentContacts(list);
+      setHasUnreadContact(list.some((c) => c.status === 'pending'));
+    } catch (e) {
+      console.error('❌ Lỗi lấy liên hệ mới:', e);
+    } finally {
+      setContactsLoading(false);
+    }
+  };
+
+  const handleMailClick = () => {
+    const next = !showContactPanel;
+    setShowContactPanel(next);
+    if (next) {
+      fetchRecentContacts();
+    }
+  };
+
+  // Kiểm tra định kỳ liên hệ chưa đọc (mỗi 30s)
+  useEffect(() => {
+    fetchRecentContacts();
+    const t = setInterval(fetchRecentContacts, 30000);
+    return () => clearInterval(t);
+  }, []);
+
   return (
     <header className="bg-white shadow-sm px-4 py-3 flex justify-between items-center sticky top-0 z-40 w-full">
       {/* Mobile Menu Button + Logo + Search */}
@@ -181,12 +282,91 @@ const Header = ({ onOpenSidebar }) => {
       {/* Icons + Avatar */}
       <div className="flex items-center gap-4 relative" ref={menuRef}>
         <div className="relative">
+          <button onClick={handleBellClick} className="relative">
           <Bell size={20} className="text-gray-600 hover:text-green-500 cursor-pointer" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full" />
+            {hasNewOrder && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full" />}
+          </button>
+          {(showOrderPanel) && (
+            <div className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg w-80 z-50">
+              <div className="px-4 py-2 border-b flex items-center justify-between">
+                <div className="font-medium">Đơn hàng mới nhất</div>
+                <button onClick={() => setShowOrderPanel(false)} className="text-xs text-gray-500 hover:text-gray-700">Đóng</button>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {ordersLoading ? (
+                  <div className="px-4 py-6 text-sm text-gray-500">Đang tải...</div>
+                ) : recentOrders.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-gray-500">Chưa có đơn hàng</div>
+                ) : (
+                  recentOrders.map((o) => (
+                    <div key={o._id} className="px-4 py-3 border-b last:border-b-0">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium">#{String(o._id).slice(-6)}</div>
+                        <div className="text-xs text-gray-500">{new Date(o.createdAt).toLocaleString('vi-VN')}</div>
+                      </div>
+                      <div className="mt-1 text-sm text-gray-700 truncate">{o.customer?.name || 'Khách lẻ'}</div>
+                      <div className="text-sm font-semibold text-green-600">{Number(o.total||0).toLocaleString()} đ</div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-between">
+                {lastOrderInfo && (
+                  <div className="text-xs text-gray-500 truncate">Mới: #{String(lastOrderInfo.id).slice(-6)}</div>
+                )}
+                <button
+                  onClick={() => { setShowOrderPanel(false); navigate('/admin/orders'); }}
+                  className="text-sm text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
+                >
+                  Xem tất cả
+                </button>
+              </div>
+            </div>
+          )}
         </div>
         <div className="relative">
+          <button onClick={handleMailClick} className="relative">
           <Mail size={20} className="text-gray-600 hover:text-green-500 cursor-pointer" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-green-400 rounded-full" />
+            {hasUnreadContact && (
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full" />
+            )}
+          </button>
+          {showContactPanel && (
+            <div className="absolute right-0 mt-2 bg-white border rounded-lg shadow-lg w-80 z-50">
+              <div className="px-4 py-2 border-b flex items-center justify-between">
+                <div className="font-medium">Liên hệ gần đây</div>
+                <button onClick={() => setShowContactPanel(false)} className="text-xs text-gray-500 hover:text-gray-700">Đóng</button>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {contactsLoading ? (
+                  <div className="px-4 py-6 text-sm text-gray-500">Đang tải...</div>
+                ) : recentContacts.length === 0 ? (
+                  <div className="px-4 py-6 text-sm text-gray-500">Chưa có liên hệ</div>
+                ) : (
+                  recentContacts.map((c) => (
+                    <div key={c._id} className="px-4 py-3 border-b last:border-b-0">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm font-medium truncate">{c.name || 'Khách'}</div>
+                        <span className={`text-xs px-2 py-0.5 rounded ${c.status === 'processed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                          {c.status === 'processed' ? 'Đã xử lý' : 'Chưa đọc'}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-500">{new Date(c.createdAt).toLocaleString('vi-VN')}</div>
+                      <div className="mt-1 text-sm text-gray-700 truncate">{c.message}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div className="px-4 py-2 border-t bg-gray-50 flex items-center justify-end">
+                <button
+                  onClick={() => { setShowContactPanel(false); navigate('/admin/contact'); }}
+                  className="text-sm text-white bg-green-600 hover:bg-green-700 px-3 py-1 rounded"
+                >
+                  Xem tất cả
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Avatar */}

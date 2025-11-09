@@ -136,7 +136,10 @@ const handleAddSubImages = async (e) => {
     };
 
     try {
-      await axios.put(`${backendUrl}/api/products/${id}`, updatedData);
+      const token = localStorage.getItem('token');
+      await axios.put(`${backendUrl}/api/products/${id}`, updatedData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert("✅ Cập nhật sản phẩm thành công!");
       navigate('/admin/products');
     } catch (err) {

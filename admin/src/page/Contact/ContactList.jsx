@@ -7,10 +7,18 @@ export default function ContactList() {
   const [contacts, setContacts] = useState([]);
   const [replyingId, setReplyingId] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const fetchContacts = async () => {
-    const res = await axios.get(`${backendUrl}/api/contacts`);
-    setContacts(res.data);
+    const res = await axios.get(`${backendUrl}/api/contacts`, {
+      params: { page, limit },
+    });
+    setContacts(res.data.data || []);
+    setPages(res.data.pages || 1);
+    setTotal(res.data.total || 0);
   };
 
   const updateStatus = async (id, status) => {
@@ -41,7 +49,7 @@ export default function ContactList() {
 
   useEffect(() => {
     fetchContacts();
-  }, []);
+  }, [page, limit]);
 
   return (
     <div className="p-6">
@@ -132,6 +140,72 @@ export default function ContactList() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="text-sm text-gray-600">
+          Tổng: <span className="font-medium">{total}</span> liên hệ
+          {total > 0 && (
+            <span className="ml-2">(Trang {page}/{pages})</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className={`px-3 py-1 rounded border ${
+              page === 1
+                ? 'text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            ← Trước
+          </button>
+
+          <div className="hidden sm:flex items-center gap-1">
+            {Array.from({ length: pages || 1 }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`min-w-[36px] h-9 px-2 rounded border text-sm ${
+                  p === page
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setPage((p) => Math.min(pages, p + 1))}
+            disabled={page === pages || pages === 0}
+            className={`px-3 py-1 rounded border ${
+              page === pages || pages === 0
+                ? 'text-gray-400 border-gray-200 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            Sau →
+          </button>
+
+          <select
+            value={limit}
+            onChange={(e) => {
+              setPage(1);
+              setLimit(Number(e.target.value));
+            }}
+            className="ml-2 border rounded px-2 py-1 text-sm"
+          >
+            <option value={5}>5/trang</option>
+            <option value={10}>10/trang</option>
+            <option value={20}>20/trang</option>
+            <option value={50}>50/trang</option>
+          </select>
+        </div>
       </div>
     </div>
   );

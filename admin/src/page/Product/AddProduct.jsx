@@ -80,7 +80,10 @@ const AddProduct = () => {
     }
 
     try {
-      await axios.post(`${backendUrl}/api/products`, payload);
+      const token = localStorage.getItem('token');
+      await axios.post(`${backendUrl}/api/products`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert("✅ Thêm sản phẩm thành công!");
       navigate('/admin/products');
     } catch (err) {

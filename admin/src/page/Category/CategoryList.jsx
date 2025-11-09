@@ -93,11 +93,17 @@ const CategoryList = () => {
 
   const handleEdit = (cat) => {
     setEditing(cat);
+    // Lấy parent ID - có thể là object hoặc string
+    let parentId = '';
+    if (cat.parent) {
+      parentId = typeof cat.parent === 'object' ? cat.parent._id : cat.parent;
+    }
+    
     setForm({
       name: cat.name || '',
       description: cat.description || '',
       image: cat.image || '',
-      parent: cat.parent || '',
+      parent: parentId,
       isFeatured: cat.isFeatured || false,
       status: cat.status || 'active',
       metaTitle: cat.metaTitle || '',
@@ -295,13 +301,25 @@ const CategoryList = () => {
             </tr>
           </thead>
           <tbody>
-            {categories.map((cat) => (
+            {categories.map((cat) => {
+              // Tìm tên danh mục cha
+              let parentName = '---';
+              if (cat.parent) {
+                if (typeof cat.parent === 'object' && cat.parent?.name) {
+                  // Nếu parent đã được populate
+                  parentName = cat.parent.name;
+                } else if (typeof cat.parent === 'string') {
+                  // Nếu parent là ID string, tìm trong danh sách
+                  const parentCat = categories.find(c => c._id === cat.parent || c._id?.toString() === cat.parent);
+                  parentName = parentCat?.name || '---';
+                }
+              }
+              
+              return (
               <tr key={cat._id} className="hover:bg-gray-100">
                 <td className="p-2 border">{cat.name}</td>
                 <td className="p-2 border text-gray-500">{cat.slug}</td>
-                <td className="p-2 border text-gray-600">
-                  {typeof cat.parent === 'object' && cat.parent?.name ? cat.parent.name : '---'}
-                </td>
+                  <td className="p-2 border text-gray-600">{parentName}</td>
                <td className="p-2 border">
                   {cat.status === 'active' ? (
                     <span className="text-green-600">Đang hoạt động</span>
@@ -324,7 +342,8 @@ const CategoryList = () => {
                   </button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {categories.length === 0 && (
               <tr>
                 <td colSpan="5" className="text-center p-4 text-gray-400">
