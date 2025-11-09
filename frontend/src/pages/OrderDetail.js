@@ -374,7 +374,7 @@ export default function OrderDetail() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span>📧</span>
-                  <span>support@bonsaiviet.com</span>
+                  <span>support@coigarden.com</span>
                 </div>
               </div>
             </div>

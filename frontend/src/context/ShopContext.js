@@ -2,7 +2,12 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import productsData from '../assets/data';
 
 const ShopContext = createContext();
-export const backendUrl = process.env.REACT_APP_BACKEND_URL;
+// Fallback to localhost:5001 if REACT_APP_BACKEND_URL is not set
+// Lưu ý: Cần restart dev server sau khi thay đổi .env
+export const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
+// Debug: Log backendUrl để kiểm tra
+console.log('🔧 Backend URL:', process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001 (fallback)');
 
 export const ShopProvider = ({ children }) => {
   const [products, setProducts] = useState([]);

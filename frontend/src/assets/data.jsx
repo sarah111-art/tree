@@ -2,9 +2,9 @@ import caytrongnha1 from "../assets/items/caytrongnha1.jpg";
 const products = [
   {
     _id: "1",
-    name: "Bonsai Tùng La Hán",
+    name: "Terrarium Tùng La Hán",
     price: 1200000,
-    category: "bonsai",
+    category: "terrarium",
     sold: 20,
     rating: 4.5,
     date: "2024-05-15",
@@ -26,9 +26,9 @@ const products = [
   },
   {
     _id: "3",
-    name: "Bonsai Sanh Giáng Long",
+    name: "Terrarium Sanh Giáng Long",
     price: 2500000,
-    category: "bonsai",
+    category: "terrarium",
     sold: 50,
     rating: 4.9,
     date: "2024-04-10",
@@ -52,7 +52,7 @@ const products = [
     _id: "5",
     name: "Cần Thăng Dáng Bay",
     price: 1100000,
-    category: "bonsai",
+    category: "terrarium",
     sold: 10,
     rating: 4.1,
     date: "2024-06-10",

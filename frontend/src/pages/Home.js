@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { useShop } from '../context/ShopContext';
@@ -6,23 +6,24 @@ import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
 import { motion } from 'framer-motion';
 import Slider from '../components/Slider';
-import CategorySlider from '../components/CategorySlider';
 import ProductCard from '../components/ProductCard';
-import ProductList from '../components/ProductList';
-import SectionBlock from '../components/SectionBlock';
+import SidebarFilter from '../components/SidebarFilter';
 import QuickView from '../components/QuickView';
-import { HeartHandshake, Phone, Truck, User, ShoppingCart, Heart } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, ShoppingCart } from 'lucide-react';
 
 export default function Home() {
   const { category } = useParams();
-  const { products, token, user } = useShop();
+  const { products, categories, token, user } = useShop();
   const [quickViewProduct, setQuickViewProduct] = useState(null);
-  const [bestSellers, setBestSellers] = useState([]);
-  const [newest, setNewest] = useState([]);
-  const [topRated, setTopRated] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [sortOption, setSortOption] = useState('newest');
+  const [priceFilter, setPriceFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [discountProducts, setDiscountProducts] = useState([]);
+  const productsPerPage = 12;
   const normalize = (str) => str.toLowerCase().replace(/\s+/g, '-');
-  const [loading,setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const filteredProducts = category
     ? products.filter((p) => normalize(p.category) === category)
@@ -32,22 +33,60 @@ export default function Home() {
     window.scrollTo(0, 0);
   }, [category]);
 
-  useEffect(() => {
-    const fetchSpecialProducts = async () => {
-      try {
-        const bestRes = await axios.get(`${backendUrl}/api/products/best-sellers?limit=3`);
-        const newRes = await axios.get(`${backendUrl}/api/products/newest?limit=3`);
-        const topRes = await axios.get(`${backendUrl}/api/products/top-rated?limit=3`);
-        setBestSellers(bestRes.data);
-        setNewest(newRes.data);
-        setTopRated(topRes.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('❌ Lỗi khi tải sản phẩm đặc biệt:', err.message);
-      }
-    };
+  // Lọc và sắp xếp sản phẩm
+  const filteredAndSortedProducts = useMemo(() => {
+    let filtered = [...products].filter(p => p.status === 'active');
 
-    fetchSpecialProducts();
+    // Lọc theo giá
+    if (priceFilter) {
+      const [min, max] = priceFilter.split('-').map(Number);
+      filtered = filtered.filter(p => {
+        const price = p.salePrice > 0 ? p.salePrice : p.price;
+        return price >= min && (max ? price <= max : true);
+      });
+    }
+
+    // Lọc theo danh mục
+    if (categoryFilter) {
+      filtered = filtered.filter(p => 
+        p.category === categoryFilter || p.category?._id === categoryFilter
+      );
+    }
+
+    // Sắp xếp
+    if (sortOption === 'price-asc') {
+      filtered.sort((a, b) => {
+        const priceA = a.salePrice > 0 ? a.salePrice : a.price;
+        const priceB = b.salePrice > 0 ? b.salePrice : b.price;
+        return priceA - priceB;
+      });
+    } else if (sortOption === 'price-desc') {
+      filtered.sort((a, b) => {
+        const priceA = a.salePrice > 0 ? a.salePrice : a.price;
+        const priceB = b.salePrice > 0 ? b.salePrice : b.price;
+        return priceB - priceA;
+      });
+    } else {
+      // Mới nhất (theo createdAt)
+      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    }
+
+    return filtered;
+  }, [products, priceFilter, categoryFilter, sortOption]);
+
+  // Reset trang khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [priceFilter, categoryFilter, sortOption]);
+
+  // Lấy sản phẩm giảm giá cho sidebar
+  useEffect(() => {
+    const discount = products.filter(p => p.salePrice > 0 && p.status === 'active').slice(0, 1);
+    setDiscountProducts(discount);
+  }, [products]);
+
+  useEffect(() => {
+    setLoading(false);
   }, []);
 
   const handleQuickView = (product) => {
@@ -69,10 +108,10 @@ export default function Home() {
       <div>
         <Helmet>
           <title>
-            {category ? `Danh mục: ${category.replace('-', ' ')}` : 'Bonsai Việt - Trang chủ'}
+            {category ? `Danh mục: ${category.replace('-', ' ')}` : 'Còi Garden - Trang chủ'}
           </title>
         </Helmet>
-          <div className="bg-gradient-to-r from-green-50 via-green-100 to-green-50 py-8 border-t border-b border-green-200">
+          {/* <div className="bg-gradient-to-r from-green-50 via-green-100 to-green-50 py-8 border-t border-b border-green-200">
             <div className="container mx-auto px-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                 <div className="group">
@@ -106,12 +145,12 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         {!category ? (
           <>
-            <div className="overflow-hidden w-full pt-4">
+            <div className="overflow-hidden w-full">
               <motion.h1
-                className="text-5xl sm:text-3xl font-bold mb-6 text-green-800 whitespace-nowrap"
+                className="text-6xl md:text-5xl sm:text-3xl font-extrabold font-serif tracking-tight leading-tight text-green-800 whitespace-nowrap"
                 animate={{ x: ['100%', '-100%'] }}
                 transition={{
                   repeat: Infinity,
@@ -119,16 +158,163 @@ export default function Home() {
                   ease: 'linear',
                 }}
               >
-                🌿 Bonsai Việt - Cây kiểng nghệ thuật 🌱
+                Còi Garden - Mang Hơi Thở Xanh Vào Ngôi Nhà Bạn
               </motion.h1>
             </div>
             <Slider />
-            <CategorySlider />
-            <h2 className="text-2xl font-bold mt-10 mb-4">📦 Tất cả sản phẩm</h2>
-            <ProductList onQuickView={handleQuickView} />
-            <SectionBlock title="🔥 Bán chạy nhất" products={bestSellers} onQuickView={handleQuickView} />
-            <SectionBlock title="🆕 Sản phẩm mới" products={newest} onQuickView={handleQuickView} />
-            <SectionBlock title="⭐ Top xếp hạng" products={topRated} onQuickView={handleQuickView} />
+            
+            {/* Product listing với sidebar */}
+            <div className="flex gap-6 mt-10">
+              {/* Sidebar */}
+              <SidebarFilter
+                categories={categories}
+                onPriceFilter={setPriceFilter}
+                onCategoryFilter={setCategoryFilter}
+                discountProducts={discountProducts}
+              />
+
+              {/* Main content */}
+              <div className="flex-1">
+                {/* Sorting options */}
+                <div className="flex gap-2 mb-6">
+                  <button
+                    onClick={() => setSortOption('newest')}
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                      sortOption === 'newest'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Mới nhất
+                  </button>
+                  <button
+                    onClick={() => setSortOption('price-asc')}
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                      sortOption === 'price-asc'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Giá tăng dần
+                  </button>
+                  <button
+                    onClick={() => setSortOption('price-desc')}
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                      sortOption === 'price-desc'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Giá giảm dần
+                  </button>
+                </div>
+
+                {/* Product grid */}
+                {filteredAndSortedProducts.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">Không có sản phẩm nào.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                    {filteredAndSortedProducts
+                      .slice((currentPage - 1) * productsPerPage, currentPage * productsPerPage)
+                      .map((product) => (
+                        <ProductCard key={product._id} product={product} onQuickView={handleQuickView} />
+                      ))}
+                  </div>
+                )}
+
+                {/* Pagination */}
+                {filteredAndSortedProducts.length > 0 && (() => {
+                  const totalPages = Math.ceil(filteredAndSortedProducts.length / productsPerPage);
+                  if (totalPages <= 1) return null;
+                  
+                  const getPageNumbers = () => {
+                    const pages = [];
+                    const showEllipsis = totalPages > 7;
+                    
+                    if (!showEllipsis) {
+                      // Hiển thị tất cả các trang nếu ít hơn 7 trang
+                      for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                      }
+                    } else {
+                      // Luôn hiển thị trang đầu
+                      pages.push(1);
+                      
+                      if (currentPage > 3) {
+                        pages.push('ellipsis-start');
+                      }
+                      
+                      // Hiển thị các trang xung quanh trang hiện tại
+                      const start = Math.max(2, currentPage - 1);
+                      const end = Math.min(totalPages - 1, currentPage + 1);
+                      
+                      for (let i = start; i <= end; i++) {
+                        if (i !== 1 && i !== totalPages) {
+                          pages.push(i);
+                        }
+                      }
+                      
+                      if (currentPage < totalPages - 2) {
+                        pages.push('ellipsis-end');
+                      }
+                      
+                      // Luôn hiển thị trang cuối
+                      pages.push(totalPages);
+                    }
+                    
+                    return pages;
+                  };
+                  
+                  const pageNumbers = getPageNumbers();
+                  
+                  return (
+                    <div className="flex items-center justify-center gap-2 mt-8 mb-8">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                        title="Trang trước"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      
+                      {pageNumbers.map((page, index) => {
+                        if (page === 'ellipsis-start' || page === 'ellipsis-end') {
+                          return (
+                            <span key={`ellipsis-${index}`} className="px-2 text-gray-500">
+                              ...
+                            </span>
+                          );
+                        }
+                        
+                        return (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                              currentPage === page
+                                ? 'bg-green-600 text-white'
+                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        );
+                      })}
+                      
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage >= totalPages}
+                        className="p-2 rounded border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                        title="Trang sau"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
             
             {/* Section Tài khoản của tôi - chỉ hiển thị khi đã đăng nhập */}
             {token && (

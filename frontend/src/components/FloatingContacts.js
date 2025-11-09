@@ -15,7 +15,7 @@ export default function FloatingContacts() {
         transition={{ duration: 1, repeat: Infinity }}
       >
         <img src={phone} alt="Phone" className="w-8 h-8 rounded-full" />
-        <span className="bg-orange-400 text-white px-2 py-1 rounded-lg text-xs">
+        <span className="bg-green-600 text-white px-2 py-1 rounded-lg text-xs">
           Hotline: 0898 123 456
         </span>
       </motion.a>

@@ -8,7 +8,11 @@ export default function AllCategories() {
 
   useEffect(() => {
     axios.get(`${backendUrl}/api/categories`)
-      .then(res => setCategories(res.data))
+      .then(res => {
+        // Chỉ lấy các danh mục có parent (danh mục cha)
+        const categoriesWithParent = res.data.filter(cat => cat.parent);
+        setCategories(categoriesWithParent);
+      })
       .catch(err => console.error('❌ Lỗi khi tải danh mục:', err.message));
   }, []);
 

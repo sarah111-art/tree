@@ -4,6 +4,7 @@ import { Heart, Search, ShoppingCart, User2Icon, LogOut, FileText, Menu, X } fro
 import { useShop, useWishlist } from '../context/ShopContext';
 import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
+import logo from '../assets/logo/logo.png';
 
 export default function Header() {
   const [orderCount, setOrderCount] = useState(0);
@@ -81,7 +82,7 @@ export default function Header() {
             </div>
             <div className="flex items-center gap-4">
               <span>📞 Hotline: 0898 123 456</span>
-              <span>📧 support@bonsaiviet.com</span>
+              <span>📧 support@coigarden.com</span>
             </div>
           </div>
         </div>
@@ -89,65 +90,61 @@ export default function Header() {
 
       {/* Main header */}
       <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-        {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
-              <span className="text-green-700 text-xl font-bold">🌿</span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
-          Bonsai Việt
-              </h1>
-              <p className="text-xs text-green-200">Nghệ thuật cây cảnh</p>
-            </div>
-        </Link>
+        {/* Desktop: Logo và Search bar cùng hàng */}
+        <div className="hidden md:flex items-center justify-between mb-0">
+          {/* Logo và Search bar */}
+          <div className="flex items-center gap-4 flex-1">
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
+              <img 
+                src={logo} 
+                alt="Còi Garden Logo" 
+                className="h-12 w-auto group-hover:scale-110 transition-transform duration-200"
+              />
+            </Link>
 
-          {/* Search bar */}
-          <div className="hidden md:block flex-1 max-w-2xl mx-8">
-            <form onSubmit={handleSubmit} className="relative">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-  <input
-    type="text"
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Tìm kiếm cây bonsai, hoa, vật tư..."
-                  className="w-full pl-12 pr-4 py-3 rounded-full border-0 bg-white/10 backdrop-blur-sm text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all duration-300"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-full transition-all duration-200 backdrop-blur-sm"
-                >
-                  Tìm
-                </button>
-              </div>
-              
-  {suggestions.length > 0 && (
-                <ul className="absolute z-[9999] bg-white text-gray-800 border rounded-xl w-full mt-2 shadow-2xl max-h-60 overflow-y-auto">
-      {suggestions.map((item) => (
-        <li
-          key={item._id}
-          onClick={() => {
-            navigate(`/san-pham/${item._id}`);
-            setSearchTerm('');
-            setSuggestions([]);
-          }}
-                      className="px-4 py-3 hover:bg-green-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 flex items-center gap-3 group"
-        >
-                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-green-200 transition-colors">
-                        <span className="text-green-600 text-xs">🌿</span>
-                      </div>
-                      <span className="font-medium">{item.name}</span>
-        </li>
-      ))}
-    </ul>
-  )}
-</form>
+            {/* Search bar */}
+            <div className="flex-1 max-w-2xl">
+              <form onSubmit={handleSubmit} className="relative">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Tìm kiếm Terrarium..."
+                    className="w-full pl-4 pr-4 py-3 rounded-full border-0 bg-white/10 backdrop-blur-sm text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:bg-white/20 transition-all duration-300"
+                  />
+                  <button
+                    type="submit"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white px-4 py-1.5 rounded-full transition-all duration-200 backdrop-blur-sm"
+                  >
+                    Tìm
+                  </button>
+                </div>
+                
+                {suggestions.length > 0 && (
+                  <ul className="absolute z-[9999] bg-white text-gray-800 border rounded-xl w-full mt-2 shadow-2xl max-h-60 overflow-y-auto">
+                    {suggestions.map((item) => (
+                      <li
+                        key={item._id}
+                        onClick={() => {
+                          navigate(`/san-pham/${item._id}`);
+                          setSearchTerm('');
+                          setSuggestions([]);
+                        }}
+                        className="px-4 py-3 hover:bg-green-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 flex items-center gap-3 group"
+                      >
+                        <span className="font-medium">{item.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </form>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="flex items-center gap-6">
             {/* Wishlist */}
                     <Link
               to="/yeu-thich"
@@ -219,28 +216,63 @@ export default function Header() {
               </div>
             )}
           </nav>
+        </div>
+
+        {/* Mobile: Logo, Search và Menu button cùng hàng */}
+        <div className="md:hidden flex items-center gap-2 py-2">
+          {/* Mobile Logo */}
+          <Link to="/" className="flex items-center gap-1 group flex-shrink-0">
+            <img 
+              src={logo} 
+              alt="Còi Garden Logo" 
+              className="h-8 w-auto group-hover:scale-110 transition-transform duration-200"
+            />
+          </Link>
+
+          {/* Mobile Search */}
+          <div className="flex-1 min-w-0">
+            <form onSubmit={handleSubmit} className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Tìm kiếm..."
+                className="w-full pl-3 pr-10 py-2 rounded-full border-0 bg-white/10 backdrop-blur-sm text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
+              />
+              <button
+                type="submit"
+                className="absolute right-1 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full transition-all duration-200 text-xs"
+              >
+                Tìm
+              </button>
+            </form>
+            
+            {suggestions.length > 0 && (
+              <ul className="absolute z-[9999] bg-white text-gray-800 border rounded-xl w-full mt-2 shadow-2xl max-h-60 overflow-y-auto left-0 right-0 mx-4">
+                {suggestions.map((item) => (
+                  <li
+                    key={item._id}
+                    onClick={() => {
+                      navigate(`/san-pham/${item._id}`);
+                      setSearchTerm('');
+                      setSuggestions([]);
+                    }}
+                    className="px-4 py-3 hover:bg-green-50 cursor-pointer text-sm border-b border-gray-100 last:border-b-0 flex items-center gap-3 group"
+                  >
+                    <span className="font-medium">{item.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200"
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-200 flex-shrink-0"
           >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
-        </div>
-
-        {/* Mobile Search */}
-        <div className="md:hidden mt-4">
-          <form onSubmit={handleSubmit} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Tìm kiếm..."
-              className="w-full pl-10 pr-3 py-2 rounded-full border-0 bg-white/10 backdrop-blur-sm text-white placeholder-green-200 focus:outline-none focus:ring-2 focus:ring-white/30"
-            />
-          </form>
         </div>
       </div>
 

@@ -9,7 +9,9 @@ export default function CategorySlider() {
     const fetchCategories = async () => {
       try {
       const res = await axios.get(`${backendUrl}/api/categories`);   
-       setCategories(res.data); // Giả sử API trả về mảng [{ name, slug, image, count }]
+       // Chỉ lấy các danh mục có parent (danh mục cha)
+       const categoriesWithParent = res.data.filter(cat => cat.parent);
+       setCategories(categoriesWithParent);
       } catch (err) {
         console.error('❌ Lỗi khi tải danh mục:', err.message);
       }
@@ -20,7 +22,7 @@ export default function CategorySlider() {
   return (
     <section className="my-10">
       <div className="flex justify-between items-center mb-4 px-2">
-        <h2 className="text-2xl font-semibold">🌿 Danh mục sản phẩm</h2>
+        <h2 className="text-2xl font-semibold">Danh mục sản phẩm</h2>
         <Link
           to="/danh-muc"
           className="text-green-600 hover:underline text-sm"
@@ -28,21 +30,24 @@ export default function CategorySlider() {
           Xem tất cả
         </Link>
       </div>
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+      {/* Lưới đồng đều thay vì scroll ngang */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {categories.map((cat) => (
           <Link
             key={cat.slug}
             to={`/danh-muc/${cat.slug}`}
-            className="min-w-[180px] bg-white shadow rounded-lg hover:shadow-lg transition-all duration-200"
+            className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col h-full"
           >
             <img
               src={cat.image}
               alt={cat.name}
-              className="w-full h-40 object-cover rounded-t-lg"
+              className="w-full aspect-square object-cover"
             />
-            <div className="p-2 text-center">
-              <h3 className="text-md font-semibold">{cat.name}</h3>
-              <p className="text-gray-500 text-sm">{cat.count} sản phẩm</p>
+            <div className="p-4 text-center flex flex-col flex-1">
+              <h3 className="text-base font-semibold text-gray-800 line-clamp-2 min-h-[44px]">
+                {cat.name}
+              </h3>
+              <div className="mt-auto" />
             </div>
           </Link>
         ))}

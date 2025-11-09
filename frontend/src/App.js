@@ -60,9 +60,6 @@ function App() {
               <Route path="/don-hang/:id" element={<OrderDetail />} />
               <Route path="/tim-kiem" element={<SearchResults />} />
 
-
-
-
               {/* Các route khác */}
               <Route path="/gioi-thieu" element={<About />} />
               <Route path="/lien-he" element={<ContactPage />} />

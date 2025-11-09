@@ -23,7 +23,7 @@ export default function CamNangPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-green-700 mb-6">🌿 Cẩm Nang Chăm Sóc Bonsai</h1>
+      <h1 className="text-2xl font-bold text-green-700 mb-6">🌿 Cẩm Nang Chăm Sóc Terrarium</h1>
       <div className="grid gap-6 md:grid-cols-2">
         {posts.map(post => (
           <div key={post._id} className="bg-white rounded shadow p-4 flex flex-col hover:shadow-md transition">

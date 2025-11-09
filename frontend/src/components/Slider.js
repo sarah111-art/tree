@@ -23,7 +23,7 @@ export default function Slider() {
   }, []);
 
   return (
-    <div className="w-full max-w-[1200px] mx-auto mt-4 mb-8 rounded-xl overflow-hidden shadow-lg">
+    <div className="w-full mx-auto mt-4 mb-8 overflow-hidden">
       <Swiper
         modules={[Pagination, Autoplay, Navigation]}
         spaceBetween={30}
@@ -39,7 +39,7 @@ export default function Slider() {
               <img
                 src={slide.image}
                 alt={slide.title}
-                className="w-full h-[400px] object-cover transition-transform duration-500 hover:scale-105"
+                className="w-full h-[450px] md:h-[520px] object-cover transition-transform duration-500 hover:scale-105"
               />
               <div className="absolute bottom-6 left-6 bg-black/60 text-white p-4 rounded-xl shadow-xl max-w-[80%] text-lg font-medium">
                 {slide.title}

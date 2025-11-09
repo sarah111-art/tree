@@ -19,6 +19,11 @@ export default function ProductDetail() {
   const isInCart = cartItems.some(item => item._id === product?._id);
   const cartItem = cartItems.find(item => item._id === product?._id);
 
+  // Scroll to top khi vào trang
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   // Load sản phẩm
   useEffect(() => {
     const fetchProduct = async () => {
@@ -189,7 +194,7 @@ const filteredProducts = useMemo(() => {
 
           <ul className="list-disc list-inside text-green-700 mt-4 space-y-1">
             <li>Đất sạch, an toàn, giàu dinh dưỡng tự nhiên</li>
-            <li>Phù hợp nhiều loại cây bonsai, kiểng và rau</li>
+            <li>Phù hợp nhiều loại Terrarium, kiểng và rau</li>
             <li>Giao nhanh trong ngày tại TP.HCM</li>
             <li>Tư vấn tận tâm, hỗ trợ 24/7</li>
           </ul>
@@ -330,9 +335,9 @@ const filteredProducts = useMemo(() => {
       {/* Sản phẩm liên quan */}
       {filteredProducts.length > 0 && (
         <>
-          <h2 className="mt-12 text-xl font-bold text-gray-800">Sản phẩm liên quan</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-            {filteredProducts.slice(0, 3).map((p) => (
+          <h2 className="mt-8 text-lg font-semibold text-gray-800 mb-3">Sản phẩm liên quan</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {filteredProducts.slice(0, 5).map((p) => (
               <ProductCard key={p._id} product={p} onQuickView={setQuickViewProduct} />
             ))}
           </div>

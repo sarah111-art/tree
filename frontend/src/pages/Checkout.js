@@ -183,7 +183,7 @@ const Checkout = () => {
     }
   };
 
-  // ✅ Load QR tĩnh (thông tin tài khoản)
+  // ✅ Load QR tĩnh ()
   useEffect(() => {
     const fetchQR = async () => {
       try {
