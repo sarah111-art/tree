@@ -187,11 +187,9 @@ const Checkout = () => {
     const fetchQR = async () => {
       try {
         const res = await axios.get(`${backendUrl}/api/qr`);
-        const qrMap = {};
         const qrInfoMap = {};
         
         res.data.forEach((qr) => {
-          qrMap[qr.type] = qr.imageUrl;
           qrInfoMap[qr.type] = {
             imageUrl: qr.imageUrl,
             phoneNumber: qr.phoneNumber,
@@ -201,7 +199,6 @@ const Checkout = () => {
           };
         });
         
-        setQrImages(qrMap);
         setQrInfo(qrInfoMap);
       } catch (err) {
         console.error('❌ Lỗi lấy mã QR:', err);
