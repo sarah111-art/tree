@@ -26,18 +26,6 @@ export default function MyOrders() {
   }
 }, [user]);
 
-  const debugDatabase = async () => {
-    try {
-      console.log('🔍 Debug - Kiểm tra database...');
-      const res = await axios.get(`${backendUrl}/api/orders/debug/all`);
-      console.log('📋 Debug - Kết quả database:', res.data);
-      alert(`Tổng đơn hàng: ${res.data.total}\nKiểm tra console để xem chi tiết`);
-    } catch (err) {
-      console.error('❌ Debug - Lỗi:', err);
-      alert('Lỗi khi debug database');
-    }
-  };
-
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-between items-center mb-4">

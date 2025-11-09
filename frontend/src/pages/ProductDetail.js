@@ -13,7 +13,6 @@ export default function ProductDetail() {
   const [categoryName, setCategoryName] = useState('');
   const [quantity, setQuantity] = useState(1);
   const { products, token, user, cartItems, setCartItems } = useShop();
-  const [quickViewProduct, setQuickViewProduct] = useState(null);
   
   // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
   const isInCart = cartItems.some(item => item._id === product?._id);
@@ -338,7 +337,7 @@ const filteredProducts = useMemo(() => {
           <h2 className="mt-8 text-lg font-semibold text-gray-800 mb-3">Sản phẩm liên quan</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filteredProducts.slice(0, 5).map((p) => (
-              <ProductCard key={p._id} product={p} onQuickView={setQuickViewProduct} />
+              <ProductCard key={p._id} product={p} />
             ))}
           </div>
         </>

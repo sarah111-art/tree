@@ -5,7 +5,7 @@ import ProductCard from '../components/ProductCard';
 import QuickView from '../components/QuickView';
 
 export default function ProductListByCategory() {
-  const { slug, parentSlug, childSlug } = useParams();
+  const { slug, childSlug } = useParams();
   const currentSlug = childSlug || slug;
   const { products, categories } = useShop();
   const [allSlugs, setAllSlugs] = useState([]);

@@ -33,13 +33,6 @@ export default function OrderDetail() {
     }
   }, [token, user, navigate, id]);
 
-  // Load chi tiết đơn hàng
-  useEffect(() => {
-    if (token && user && id) {
-      fetchOrderDetail();
-    }
-  }, [token, user, id]);
-
   const fetchOrderDetail = async () => {
     try {
       setLoading(true);
@@ -57,6 +50,14 @@ export default function OrderDetail() {
       setLoading(false);
     }
   };
+
+  // Load chi tiết đơn hàng
+  useEffect(() => {
+    if (token && user && id) {
+      fetchOrderDetail();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, user, id]);
 
   // Hàm format ngày
   const formatDate = (dateString) => {

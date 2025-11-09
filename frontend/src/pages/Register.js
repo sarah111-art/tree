@@ -82,7 +82,7 @@ export default function Register() {
     setLoading(true);
     try {
       const { confirmPassword, ...registerData } = form;
-      const res = await axios.post(`${backendUrl}/api/users/register`, registerData);
+      await axios.post(`${backendUrl}/api/users/register`, registerData);
       toast.success("Đăng ký thành công!");
       navigate("/dang-nhap");
     } catch (err) {

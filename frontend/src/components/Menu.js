@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { ChevronDown } from "lucide-react";
-import { backendUrl, useShop } from "../context/ShopContext";
+import { backendUrl} from "../context/ShopContext";
 
 export default function Menu() {
-  const { token } = useShop();
+  //const { token } = useShop();
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {

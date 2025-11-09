@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Search, ShoppingCart, User2Icon, LogOut, FileText, Menu, X } from 'lucide-react';
+import { Heart, ShoppingCart, User2Icon, LogOut, FileText, Menu, X } from 'lucide-react';
 import { useShop, useWishlist } from '../context/ShopContext';
 import axios from 'axios';
 import { backendUrl } from '../context/ShopContext';
@@ -46,7 +46,7 @@ export default function Header() {
   ? cartItems.reduce((sum, item) => sum + item.quantity, 0)
   : 0;
   const { wishlist } = useWishlist();
-  const totalWishlist = Array.isArray(wishlist) ? wishlist.length : 0;
+  //const totalWishlist = Array.isArray(wishlist) ? wishlist.length : 0;
   
   const handleLogout = () => {
     setToken(null);

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaFacebookF, FaInstagram, FaYoutube, FaPhoneAlt } from 'react-icons/fa';
+import { FaFacebookF, FaInstagram, FaYoutube } from 'react-icons/fa';
 import { SiZalo } from 'react-icons/si';
 import { useShop } from '../context/ShopContext';
 import axios from 'axios';
@@ -116,6 +116,7 @@ export default function Footer() {
         loading
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [footerData]);
 
   return (
