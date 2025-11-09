@@ -50,7 +50,10 @@ export default function Slider() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="absolute inset-0"
-                ></a>
+                  aria-label={`Xem thêm về ${slide.title || 'slide'}`}
+                >
+                  <span className="sr-only">Xem thêm về {slide.title || 'slide'}</span>
+                </a>
               )}
             </div>
           </SwiperSlide>

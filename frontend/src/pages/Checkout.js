@@ -7,7 +7,6 @@ import PaymentMethodSelector from '../components/PaymentMethodSelector';
 import { useNavigate } from 'react-router-dom';
 const Checkout = () => {
   const { cartItems, setCartItems, user } = useShop();
-  const [qrImages, setQrImages] = useState({});
   const [qrInfo, setQrInfo] = useState({});
   const [dynamicQR, setDynamicQR] = useState({});
   const [loading, setLoading] = useState(false);

@@ -6,7 +6,6 @@ import ProductCard from './ProductCard';
 export default function SidebarFilter({ categories, onPriceFilter, onCategoryFilter, discountProducts }) {
   const [openCategories, setOpenCategories] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const priceRanges = [
@@ -23,7 +22,6 @@ export default function SidebarFilter({ categories, onPriceFilter, onCategoryFil
   };
 
   const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
     onCategoryFilter && onCategoryFilter(categoryId);
   };
 

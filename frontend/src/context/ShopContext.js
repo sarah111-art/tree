@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import productsData from '../assets/data';
 
 const ShopContext = createContext();
 // Fallback to localhost:5001 if REACT_APP_BACKEND_URL is not set
