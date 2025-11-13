@@ -11,6 +11,7 @@ console.log('🔧 Backend URL:', process.env.REACT_APP_BACKEND_URL || 'http://lo
 export const ShopProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [user, setUser] = useState(null);
   const [cartItems, setCartItems] = useState(() => {
@@ -91,6 +92,7 @@ const removeFromWishlist = (productId) => {
   // load sản phẩm
 useEffect(() => {
 const fetchData = async () => {
+  setLoading(true);
   try {
     const [productRes, categoryRes] = await Promise.all([
       fetch(`${backendUrl}/api/products`),
@@ -118,6 +120,8 @@ const fetchData = async () => {
     setCategories(categoryData);
   } catch (err) {
     console.error('Lỗi khi tải sản phẩm hoặc danh mục:', err);
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -153,6 +157,7 @@ const fetchData = async () => {
   const contextValue = {
     products,
     categories,
+    loading,
     wishlist,
     addToWishlist,
     removeFromWishlist,
