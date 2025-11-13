@@ -81,7 +81,7 @@ export default function Header() {
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <span>📞 Hotline: 0898 123 456</span>
+              <span>📞 Hotline: 039 868 9794</span>
               <span>📧 support@coigarden.com</span>
             </div>
           </div>

@@ -10,6 +10,7 @@ import ProductCard from '../components/ProductCard';
 import SidebarFilter from '../components/SidebarFilter';
 import QuickView from '../components/QuickView';
 import { ChevronLeft, ChevronRight, Heart, ShoppingCart } from 'lucide-react';
+import Loading from '../components/Loading';
 
 export default function Home() {
   const { category } = useParams();
@@ -86,8 +87,31 @@ export default function Home() {
   }, [products]);
 
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    // Đợi products và categories được load từ ShopContext
+    // Kiểm tra xem đã có dữ liệu hoặc đã đợi đủ lâu
+    const checkLoading = () => {
+      // Nếu đã có categories (thường sẽ có ít nhất một danh mục), coi như đã load xong
+      if (categories.length > 0) {
+        setLoading(false);
+        return true;
+      }
+      return false;
+    };
+
+    if (checkLoading()) {
+      return;
+    }
+
+    // Nếu chưa có dữ liệu, đợi một khoảng thời gian ngắn rồi kiểm tra lại
+    const timer = setTimeout(() => {
+      if (!checkLoading()) {
+        // Nếu sau 2 giây vẫn chưa có dữ liệu, tắt loading để tránh loading vô hạn
+        setLoading(false);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [products, categories]);
 
   const handleQuickView = (product) => {
     setQuickViewProduct(product);
@@ -101,7 +125,7 @@ export default function Home() {
   }, []);
 
   if(loading){
-    return <div className='flex items-center justify-center min-h-screen'><img src="/loading.gif" alt="Loading..." className='w-16 h-16 animate-spin' /></div>
+    return <Loading />
   }
   return (
     <div>

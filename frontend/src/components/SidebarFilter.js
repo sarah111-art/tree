@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDown, Filter, X } from 'lucide-react';
+import { Filter, X } from 'lucide-react';
 import ProductCard from './ProductCard';
 
 export default function SidebarFilter({ categories, onPriceFilter, onCategoryFilter, discountProducts }) {
-  const [openCategories, setOpenCategories] = useState(false);
   const [selectedPrice, setSelectedPrice] = useState('');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -29,43 +28,26 @@ export default function SidebarFilter({ categories, onPriceFilter, onCategoryFil
     <>
       {/* Danh mục */}
       <div className="mb-6">
-        <button
-          onClick={() => setOpenCategories(!openCategories)}
-          className="w-full flex items-center justify-between text-left font-semibold text-gray-800 mb-3"
-        >
-          <span>Danh mục</span>
-          <ChevronDown 
-            size={16} 
-            className={`transition-transform ${openCategories ? 'rotate-180' : ''}`}
-          />
-        </button>
-        {openCategories && (
-          <ul className="space-y-2">
-            <li>
-              <Link to="/san-pham" className="text-gray-600 hover:text-green-600 text-sm">
-                Sản phẩm
-              </Link>
-            </li>
-            {categories
-              .filter(cat => cat.parent)
-              .slice(0, 5)
-              .map((cat) => (
-                <li key={cat._id}>
-                  <Link 
-                    to={`/danh-muc/${cat.slug}`}
-                    className="text-gray-600 hover:text-green-600 text-sm flex items-center gap-1"
-                    onClick={() => {
-                      handleCategoryChange(cat._id);
-                      setIsMobileFilterOpen(false);
-                    }}
-                  >
-                    {cat.name}
-                    <ChevronDown size={12} />
-                  </Link>
-                </li>
-              ))}
-          </ul>
-        )}
+        <h3 className="font-semibold text-gray-800 mb-3">Danh mục</h3>
+        <ul className="space-y-2">
+          {categories
+            .filter(cat => cat.parent)
+            .slice(0, 5)
+            .map((cat) => (
+              <li key={cat._id}>
+                <Link 
+                  to={`/danh-muc/${cat.slug}`}
+                  className="text-gray-600 hover:text-green-600 text-sm"
+                  onClick={() => {
+                    handleCategoryChange(cat._id);
+                    setIsMobileFilterOpen(false);
+                  }}
+                >
+                  {cat.name}
+                </Link>
+              </li>
+            ))}
+        </ul>
       </div>
 
       {/* Lọc giá */}

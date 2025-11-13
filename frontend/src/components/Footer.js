@@ -122,7 +122,7 @@ export default function Footer() {
   return (
     <footer
       className="relative text-white text-sm bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
+      style={{ backgroundImage: `url(${backgroundImage})`, zIndex: 10 }}
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-black/60" />

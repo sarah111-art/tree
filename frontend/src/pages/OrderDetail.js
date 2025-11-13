@@ -371,7 +371,7 @@ export default function OrderDetail() {
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
                   <Phone size={20} />
-                  <span>0898 123 456</span>
+                  <span>039 868 9794</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span>📧</span>

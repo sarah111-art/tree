@@ -7,6 +7,7 @@ import Menu from './components/Menu';
 import Footer from './components/Footer';
 import Loading from './components/Loading';
 import FloatingContacts from './components/FloatingContacts';
+import CornerDecor from './components/CornerDecor';
 import ProductList from './components/ProductList';
 import RelatedProducts from './pages/RelatedProducts';
 import CartPage from './pages/CartPage';
@@ -37,6 +38,7 @@ function App() {
   return (
     <ShopProvider>
       <Router>
+        <CornerDecor />
         <Header />
         <Menu />
         <FloatingContacts />
