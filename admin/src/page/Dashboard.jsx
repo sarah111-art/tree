@@ -42,6 +42,7 @@ const DashboardPage = () => {
         }
 
         // Fetch all data in parallel
+        // Lấy tất cả dữ liệu không phân trang để tính toán dashboard
         const [
           ordersResponse,
           productsResponse,
@@ -49,6 +50,7 @@ const DashboardPage = () => {
           categoriesResponse
         ] = await Promise.all([
           axios.get('https://tree-mmpq.onrender.com/api/orders', {
+            params: { limit: 10000 }, // Lấy tất cả orders
             headers: { 
               Authorization: `Bearer ${token}`,
               'Cache-Control': 'no-cache',
@@ -63,6 +65,7 @@ const DashboardPage = () => {
             }
           }),
           axios.get('https://tree-mmpq.onrender.com/api/users', {
+            params: { limit: 10000 }, // Lấy tất cả users
             headers: { 
               Authorization: `Bearer ${token}`,
               'Cache-Control': 'no-cache',
@@ -78,10 +81,11 @@ const DashboardPage = () => {
           })
         ]);
 
-        const orders = ordersResponse.data || [];
-        const products = productsResponse.data || [];
-        const users = usersResponse.data || [];
-        const categories = categoriesResponse.data || [];
+        // Xử lý cấu trúc response có pagination
+        const orders = ordersResponse.data?.orders || ordersResponse.data || [];
+        const products = Array.isArray(productsResponse.data) ? productsResponse.data : (productsResponse.data?.products || []);
+        const users = usersResponse.data?.users || usersResponse.data || [];
+        const categories = Array.isArray(categoriesResponse.data) ? categoriesResponse.data : (categoriesResponse.data?.categories || []);
 
         // Debug logging
         console.log('Orders response:', ordersResponse.data);

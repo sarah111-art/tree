@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import tieude1 from '../assets/tieude1.jpg';
 
 export default function Login({ setToken }) {
   const [email, setEmail] = useState('');
@@ -72,10 +73,18 @@ export default function Login({ setToken }) {
   };
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-100">
+    <div 
+      className="min-h-screen flex justify-center items-center bg-cover bg-center bg-no-repeat relative"
+      style={{
+        backgroundImage: `url(${tieude1})`
+      }}
+    >
+      {/* Overlay để làm form dễ đọc hơn */}
+      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+      
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-sm"
+        className="bg-white p-8 rounded shadow-lg w-full max-w-sm relative z-10 backdrop-blur-sm bg-opacity-95"
       >
         <h2 className="text-2xl font-bold mb-6 text-center text-green-700">
           Admin Login
