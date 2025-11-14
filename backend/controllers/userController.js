@@ -74,3 +74,96 @@ export const getUserById = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' })
   }
 }
+
+// Cập nhật thông tin profile (tên và email)
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy từ token đã decode
+    const { name, email } = req.body;
+
+    const updateData = {};
+
+    if (name !== undefined) {
+      if (!name || name.trim() === '') {
+        return res.status(400).json({ message: 'Tên không được để trống' });
+      }
+      updateData.name = name.trim();
+    }
+
+    if (email !== undefined) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!email || !emailRegex.test(email.trim())) {
+        return res.status(400).json({ message: 'Email không hợp lệ' });
+      }
+
+      // Kiểm tra email đã tồn tại chưa (trừ chính user hiện tại)
+      const existingUser = await User.findOne({ email: email.trim().toLowerCase() });
+      if (existingUser && existingUser._id.toString() !== userId) {
+        return res.status(400).json({ message: 'Email đã được sử dụng bởi tài khoản khác' });
+      }
+
+      updateData.email = email.trim().toLowerCase();
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'Không có thông tin nào để cập nhật' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password'); // Không trả về password
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    res.json({ message: 'Cập nhật thông tin thành công', user });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Email đã được sử dụng' });
+    }
+    res.status(500).json({ message: 'Lỗi cập nhật thông tin' });
+  }
+}
+
+// Đổi mật khẩu
+export const changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id; // Lấy từ token đã decode
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ mật khẩu cũ và mật khẩu mới' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    // Kiểm tra mật khẩu cũ
+    const match = await bcrypt.compare(currentPassword, user.password);
+    if (!match) {
+      return res.status(401).json({ message: 'Mật khẩu cũ không đúng' });
+    }
+
+    // Hash mật khẩu mới
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Cập nhật mật khẩu
+    await User.findByIdAndUpdate(userId, { password: hashedPassword });
+
+    res.json({ message: 'Đổi mật khẩu thành công' });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({ message: 'Lỗi đổi mật khẩu' });
+  }
+}
