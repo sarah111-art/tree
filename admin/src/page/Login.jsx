@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-export default function Login() {
+export default function Login({ setToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -20,10 +20,14 @@ export default function Login() {
       if (user.role === 'manager' || user.role === 'staff') {
         localStorage.setItem('token', token);
         localStorage.setItem('adminInfo', JSON.stringify(user));
-        navigate('/admin/dashboard');
-        console
-        
-        .log('Đã chuyển hướng');
+        // Cập nhật state token trong App.jsx để tránh redirect về login
+        if (setToken) {
+          setToken(token);
+        }
+        // Đợi một chút để đảm bảo state đã được cập nhật trước khi navigate
+        setTimeout(() => {
+          navigate('/admin/dashboard');
+        }, 100);
       } else {
         alert('Bạn không có quyền truy cập trang admin');
       }

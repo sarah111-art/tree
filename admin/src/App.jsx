@@ -37,6 +37,30 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
+  // Đồng bộ token từ localStorage khi có thay đổi
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const storedToken = localStorage.getItem('token');
+      setToken(prevToken => {
+        // Chỉ cập nhật nếu token thay đổi
+        if (storedToken !== prevToken) {
+          return storedToken || '';
+        }
+        return prevToken;
+      });
+    };
+
+    // Listen storage events (khi localStorage thay đổi từ tab khác)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Kiểm tra localStorage mỗi khi location thay đổi (để catch changes từ cùng tab)
+    handleStorageChange();
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [location.pathname]);
+
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
