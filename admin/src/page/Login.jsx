@@ -1,20 +1,34 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 export default function Login({ setToken }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation cơ bản
+    if (!email.trim()) {
+      toast.error('Vui lòng nhập email');
+      return;
+    }
+    if (!password.trim()) {
+      toast.error('Vui lòng nhập mật khẩu');
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await axios.post('https://tree-mmpq.onrender.com/api/users/login', {
-        email,
+        email: email.trim(),
         password,
       });
-      console.log(res.data); 
+      
       const { token, user } = res.data;
 
       if (user.role === 'manager' || user.role === 'staff') {
@@ -24,15 +38,36 @@ export default function Login({ setToken }) {
         if (setToken) {
           setToken(token);
         }
+        
+        toast.success(`Đăng nhập thành công! Chào mừng ${user.name}`);
+        
         // Đợi một chút để đảm bảo state đã được cập nhật trước khi navigate
         setTimeout(() => {
           navigate('/admin/dashboard');
-        }, 100);
+        }, 500);
       } else {
-        alert('Bạn không có quyền truy cập trang admin');
+        toast.error('Bạn không có quyền truy cập trang admin. Chỉ tài khoản manager hoặc staff mới được phép.');
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Lỗi đăng nhập');
+      // Xử lý các loại lỗi khác nhau
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+
+      if (status === 404) {
+        toast.error('Email không tồn tại trong hệ thống');
+      } else if (status === 401) {
+        toast.error('Mật khẩu không đúng. Vui lòng kiểm tra lại.');
+      } else if (status === 403) {
+        toast.error('Bạn không có quyền truy cập');
+      } else if (status === 500) {
+        toast.error('Lỗi server. Vui lòng thử lại sau.');
+      } else if (err.message === 'Network Error' || err.code === 'ECONNABORTED') {
+        toast.error('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.');
+      } else {
+        toast.error(message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,26 +84,29 @@ export default function Login({ setToken }) {
         <input
           type="email"
           placeholder="Email"
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
           required
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-4 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          disabled={loading}
           required
         />
 
         <button
           type="submit"
-          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+          disabled={loading}
+          className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Đăng nhập
+          {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
       </form>
     </div>
