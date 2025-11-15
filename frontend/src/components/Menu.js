@@ -64,7 +64,7 @@ export default function Menu() {
   return (
     <nav className="bg-gradient-to-r from-green-50 to-green-100 shadow-lg border-b border-green-200 relative z-40">
       <div className="container mx-auto px-4 py-4">
-        <ul className="flex flex-wrap items-center justify-center gap-x-8 font-extrabold font-serif tracking-tight text-green-800 text-xl md:text-lg sm:text-base">
+        <ul className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-8 gap-y-2 font-extrabold font-serif tracking-tight text-green-800 text-base sm:text-lg md:text-xl">
           <li>
             <Link 
               to="/" 
@@ -124,13 +124,13 @@ export default function Menu() {
                 {/* Dropdown con */}
                 {children.length > 0 && (
                   <ul 
-                    className={`absolute left-0 top-full mt-2 w-56 bg-white border border-green-200 rounded-xl shadow-xl z-50 transition-all duration-300 transform origin-top ${
+                    className={`absolute left-0 md:left-0 right-auto md:right-auto top-full mt-2 w-56 max-w-[calc(100vw-2rem)] bg-white border border-green-200 rounded-xl shadow-xl z-50 transition-all duration-300 transform origin-top ${
                       isOpen 
                         ? 'opacity-100 visible scale-100' 
-                        : 'opacity-0 invisible scale-95 group-hover:opacity-100 group-hover:visible group-hover:scale-100'
+                        : 'opacity-0 invisible scale-95 md:group-hover:opacity-100 md:group-hover:visible md:group-hover:scale-100'
                     }`}
                   >
-                    <div className="p-2">
+                    <div className="p-2 max-h-[60vh] overflow-y-auto">
                       {children.map(child => (
                         <li key={child._id}>
                           <Link

@@ -12,6 +12,8 @@ export default function ProductDetail() {
   const [comment, setComment] = useState('');
   const [categoryName, setCategoryName] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [isZooming, setIsZooming] = useState(false);
   const { products, token, user, cartItems, setCartItems } = useShop();
   
   // Kiểm tra sản phẩm đã có trong giỏ hàng chưa
@@ -150,12 +152,34 @@ const filteredProducts = useMemo(() => {
 
       <div className="grid md:grid-cols-2 gap-8">
         {/* Hình ảnh */}
-        <div>
-          <img
-            src={selectedImage || '/placeholder.jpg'}
-            alt={product.name}
-            className="w-full h-[400px] object-cover rounded-lg shadow"
-          />
+        <div className="relative">
+          <div
+            className="relative overflow-hidden rounded-lg shadow cursor-zoom-in group"
+            onMouseMove={(e) => {
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              setZoomPosition({ x, y });
+            }}
+            onMouseEnter={(e) => {
+              setIsZooming(true);
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              setZoomPosition({ x, y });
+            }}
+            onMouseLeave={() => setIsZooming(false)}
+          >
+            <img
+              src={selectedImage || '/placeholder.jpg'}
+              alt={product.name}
+              className="w-full h-[400px] object-cover transition-transform duration-200"
+              style={{
+                transform: isZooming ? `scale(2.5)` : 'scale(1)',
+                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
+              }}
+            />
+          </div>
 
           {/* Ảnh phụ */}
           {product.images?.length > 0 && (
@@ -165,7 +189,7 @@ const filteredProducts = useMemo(() => {
                   key={idx}
                   src={img}
                   onClick={() => setSelectedImage(img)}
-                  className={`w-20 h-20 object-cover rounded cursor-pointer border ${selectedImage === img ? 'ring-2 ring-green-600' : ''}`}
+                  className={`w-20 h-20 object-cover rounded cursor-pointer border transition-all ${selectedImage === img ? 'ring-2 ring-green-600' : 'hover:ring-2 hover:ring-green-400'}`}
                   alt={`ảnh phụ ${idx + 1}`}
                 />
               ))}

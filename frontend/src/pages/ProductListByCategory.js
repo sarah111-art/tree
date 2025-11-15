@@ -106,11 +106,11 @@ export default function ProductListByCategory() {
       {/* 🌟 Sản phẩm nổi bật */}
         {products.some((p) => p.isFeatured) && (
           <>
-            <h2 className="mt-12 text-xl font-bold text-green-700">🌟 Sản phẩm nổi bật</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+            <h2 className="mt-8 text-lg font-semibold text-gray-800 mb-3">🌟 Sản phẩm nổi bật</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {products
                 .filter((p) => p.isFeatured && p.status === 'active')
-                .slice(0, 3)
+                .slice(0, 5)
                 .map((product) => (
                   <ProductCard
                     key={product._id}

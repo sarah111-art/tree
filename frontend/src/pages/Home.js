@@ -385,15 +385,19 @@ export default function Home() {
         )}
       </div>
 
-{posts.slice(0, 2).map((post, index) => (
-  <motion.div
-    key={post._id}
-    className="group flex flex-col md:flex-row border rounded-xl shadow-sm hover:shadow-md transition overflow-hidden bg-white"
-    initial={{ opacity: 0, y: 30 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, amount: 0.2 }}
-    transition={{ duration: 0.6, delay: index * 0.2 }}
-  >
+      {/* Bài viết - Full width */}
+      <div className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mt-8 px-4">
+        <h2 className="font-extrabold font-serif tracking-tight text-green-800 text-3xl md:text-2xl sm:text-xl mb-4 text-center">Cẩm nang</h2>
+        <div className="space-y-4">
+          {posts.slice(0, 2).map((post, index) => (
+          <motion.div
+            key={post._id}
+            className="group flex flex-col md:flex-row border rounded-none shadow-sm hover:shadow-md transition overflow-hidden bg-white w-full"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: index * 0.2 }}
+          >
     {/* Ảnh */}
     <div className="w-full md:w-1/3 h-56 md:h-auto overflow-hidden">
       <img
@@ -424,8 +428,9 @@ export default function Home() {
       </div>
     </div>
   </motion.div>
-))}
-
+          ))}
+        </div>
+      </div>
 
     </div>
   );

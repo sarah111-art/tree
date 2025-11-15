@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 import { ShopProvider } from './context/ShopContext';
 import Header from './components/Header';
@@ -34,14 +34,16 @@ const PaymentMethods = React.lazy(() => import('./pages/PaymentMethods'));
 const ShippingMethods = React.lazy(() => import('./pages/ShippingMethods'));
 const CommitmenttoQualtity = React.lazy(() => import('./pages/CommitmenttoQualtity'));
 
-function App() {
+function AppContent() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
-    <ShopProvider>
-      <Router>
-        <CornerDecor />
-        <Header />
-        <Menu />
-        <FloatingContacts />
+    <>
+      {isHomePage && <CornerDecor />}
+      <Header />
+      <Menu />
+      <FloatingContacts />
         {/* Wrap tất cả route trong Suspense */}
         <Suspense fallback={<Loading />}>
           <main className="container mx-auto p-4 min-h-screen">
@@ -77,7 +79,16 @@ function App() {
           </main>
         </Suspense>
 
-        <Footer />
+      <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ShopProvider>
+      <Router>
+        <AppContent />
       </Router>
     </ShopProvider>
   );
