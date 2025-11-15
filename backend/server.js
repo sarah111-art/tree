@@ -14,6 +14,7 @@ import bankRouter from './routes/bankRouter.js'
 import bannerRouter from './routes/bannerRouter.js'
 import footerRouter from './routes/footerRouter.js'
 import postRouter from './routes/postRouter.js'
+import aboutRouter from './routes/aboutRouter.js'
 import contactRouter from './routes/contactRouter.js'
 import qrRouter from './routes/qrRouter.js'
 import momoRouter from './routes/momoRouter.js'
@@ -52,6 +53,8 @@ app.use('/api/banners',bannerRouter);
 app.use('/api/footers', footerRouter);
 //post
 app.use('/api/posts', postRouter);
+//about
+app.use('/api/about', aboutRouter);
 //contact
 app.use('/api/contacts', contactRouter);
 //qr

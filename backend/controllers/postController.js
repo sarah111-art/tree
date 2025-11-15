@@ -5,7 +5,7 @@ import { logActivity } from '../utils/LogActivity.js';
 // Tạo bài viết mới
 export const createPost = async (req, res) => {
   try {
-    const { title, content, image, status, category, metaTitle, metaDescription, metaKeywords } = req.body;
+    const { title, content, image, images, status, category, metaTitle, metaDescription, metaKeywords } = req.body;
     const slug = slugify(title, { lower: true, strict: true });
 
     const newPost = await Post.create({
@@ -13,6 +13,7 @@ export const createPost = async (req, res) => {
       slug,
       content,
       image,
+      images: Array.isArray(images) ? images : [],
       status,
       category,
       metaTitle,
