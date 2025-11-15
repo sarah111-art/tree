@@ -5,16 +5,20 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import dayjs from 'dayjs';
 import { PageLoading } from '../../components/Loading';
+import { toast } from 'react-toastify';
+import { X, ArrowUp, ArrowDown, Upload } from 'lucide-react';
 
 export default function PostList() {
   const [posts, setPosts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [file, setFile] = useState(null);
+  const [uploadingImages, setUploadingImages] = useState([false, false, false]);
 
   const [form, setForm] = useState({
     title: '',
     image: '',
+    images: ['', '', ''],
     category: '',
     content: '',
     status: 'draft',
@@ -44,9 +48,11 @@ export default function PostList() {
     };
     loadData();
   }, []);
-const handleUpload = async () => {
+const handleUpload = async (fileToUpload) => {
+  if (!fileToUpload) return null;
+  
   const formData = new FormData();
-  formData.append('image', file); // ← PHẢI là 'image'
+  formData.append('image', fileToUpload);
 
   try {
     const res = await axios.post(`${backendUrl}/api/upload`, formData, {
@@ -55,8 +61,54 @@ const handleUpload = async () => {
     return res.data.url;
   } catch (err) {
     console.error('❌ Upload ảnh lỗi:', err?.response?.data || err.message);
-    alert('❌ Upload ảnh lỗi: ' + JSON.stringify(err?.response?.data || err.message));
+    toast.error('Lỗi upload ảnh');
     throw err;
+  }
+};
+
+const handleImageUpload = async (index, file) => {
+  if (!file) return;
+  
+  setUploadingImages(prev => {
+    const newState = [...prev];
+    newState[index] = true;
+    return newState;
+  });
+
+  try {
+    const imageUrl = await handleUpload(file);
+    const newImages = [...form.images];
+    newImages[index] = imageUrl;
+    setForm({ ...form, images: newImages });
+    toast.success(`Upload ảnh ${index + 1} thành công!`);
+  } catch (err) {
+    toast.error(`Lỗi upload ảnh ${index + 1}`);
+  } finally {
+    setUploadingImages(prev => {
+      const newState = [...prev];
+      newState[index] = false;
+      return newState;
+    });
+  }
+};
+
+const handleRemoveImage = (index) => {
+  const newImages = [...form.images];
+  newImages[index] = '';
+  // Đảm bảo luôn có 3 vị trí
+  while (newImages.length < 3) {
+    newImages.push('');
+  }
+  setForm({ ...form, images: newImages });
+};
+
+const handleMoveImage = (index, direction) => {
+  const newImages = [...form.images];
+  const targetIndex = direction === 'up' ? index - 1 : index + 1;
+  
+  if (targetIndex >= 0 && targetIndex < newImages.length) {
+    [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+    setForm({ ...form, images: newImages });
   }
 };
 
@@ -67,35 +119,50 @@ const handleUpload = async () => {
 
     if (file) {
       try {
-        imageUrl = await handleUpload();
+        imageUrl = await handleUpload(file);
       } catch (err) {
-        alert('❌ Lỗi upload ảnh');
+        toast.error('Lỗi upload ảnh đại diện');
         return;
       }
     }
 
-    const payload = { ...form, image: imageUrl };
+    const payload = {
+      ...form,
+      image: imageUrl,
+      images: form.images.filter(img => img && img.trim() !== ''), // Loại bỏ ảnh rỗng
+      metaKeywords: form.metaKeywords ? form.metaKeywords.split(',').map(k => k.trim()) : []
+    };
 
     try {
       if (editingId) {
         await axios.put(`${backendUrl}/api/posts/${editingId}`, payload);
-        alert('✅ Cập nhật bài viết thành công');
+        toast.success('Cập nhật bài viết thành công!');
       } else {
         await axios.post(`${backendUrl}/api/posts`, payload);
-        alert('✅ Thêm bài viết thành công');
+        toast.success('Thêm bài viết thành công!');
       }
       resetForm();
       fetchPosts();
     } catch (err) {
       console.error(err);
-      alert('❌ Lỗi khi lưu bài viết');
+      toast.error(err.response?.data?.message || 'Lỗi khi lưu bài viết');
     }
   };
 
   const handleEdit = (post) => {
+    const images = Array.isArray(post.images) && post.images.length > 0 
+      ? [...post.images] 
+      : ['', '', ''];
+    
+    // Đảm bảo luôn có 3 vị trí
+    while (images.length < 3) {
+      images.push('');
+    }
+    
     setForm({
       title: post.title,
       image: post.image || '',
+      images: images.slice(0, 3),
       category: post.category || '',
       content: post.content || '',
       status: post.status || 'draft',
@@ -110,6 +177,7 @@ const handleUpload = async () => {
     setForm({
       title: '',
       image: '',
+      images: ['', '', ''],
       category: '',
       content: '',
       status: 'draft',
@@ -119,6 +187,7 @@ const handleUpload = async () => {
     });
     setFile(null);
     setEditingId(null);
+    setUploadingImages([false, false, false]);
   };
 
   if (loading) {
@@ -156,10 +225,101 @@ const handleUpload = async () => {
           ))}
         </select>
 
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        {form.image && (
-          <img src={form.image} alt="preview" className="w-40 h-28 object-cover border mt-2" />
-        )}
+        {/* 3 Ảnh bài viết */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            3 Ảnh bài viết (sắp xếp vị trí)
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[0, 1, 2].map((index) => (
+              <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-green-500 transition-colors">
+                <div className="text-center mb-2">
+                  <span className="text-sm font-medium text-gray-600">Ảnh {index + 1}</span>
+                </div>
+                
+                {form.images[index] ? (
+                  <div className="relative group">
+                    <img 
+                      src={form.images[index]} 
+                      alt={`Preview ${index + 1}`} 
+                      className="w-full h-48 object-cover rounded-lg mb-2"
+                    />
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(index)}
+                        className="p-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        title="Xóa ảnh"
+                      >
+                        <X size={16} />
+                      </button>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveImage(index, 'up')}
+                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          title="Di chuyển lên"
+                        >
+                          <ArrowUp size={16} />
+                        </button>
+                      )}
+                      {index < 2 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMoveImage(index, 'down')}
+                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                          title="Di chuyển xuống"
+                        >
+                          <ArrowDown size={16} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 rounded-lg bg-green-100">
+                    <Upload size={32} className="text-gray-400 mb-2" />
+                    <label className="cursor-pointer">
+                      <span className="text-sm text-gray-600 hover:text-green-600">Chọn ảnh</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            handleImageUpload(index, file);
+                          }
+                        }}
+                        className="hidden"
+                        disabled={uploadingImages[index]}
+                      />
+                    </label>
+                    {uploadingImages[index] && (
+                      <span className="text-xs text-gray-500 mt-2">Đang upload...</span>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Bạn có thể upload 3 ảnh và sắp xếp lại thứ tự bằng các nút mũi tên
+          </p>
+        </div>
+
+        {/* Ảnh đại diện */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Ảnh đại diện (tùy chọn)
+          </label>
+          <input 
+            type="file" 
+            onChange={(e) => setFile(e.target.files[0])} 
+            className="w-full px-3 py-2 border rounded"
+          />
+          {form.image && !file && (
+            <img src={form.image} alt="preview" className="w-40 h-28 object-cover border mt-2 rounded" />
+          )}
+        </div>
 
         <ReactQuill
           value={form.content}
@@ -213,16 +373,31 @@ const handleUpload = async () => {
         {posts.map((post) => (
           <div key={post._id} className="border p-4 rounded shadow bg-white">
             <div className="flex gap-4">
-              {post.image && (
-                <img src={post.image} alt="thumb" className="w-28 h-20 object-cover rounded border" />
-              )}
+              <div className="flex gap-2">
+                {post.images && post.images.length > 0 ? (
+                  post.images.slice(0, 3).map((img, idx) => (
+                    <img 
+                      key={idx} 
+                      src={img} 
+                      alt={`${post.title} ${idx + 1}`} 
+                      className="w-28 h-20 object-cover rounded border"
+                    />
+                  ))
+                ) : post.image ? (
+                  <img src={post.image} alt="thumb" className="w-28 h-20 object-cover rounded border" />
+                ) : (
+                  <div className="w-28 h-20 bg-gray-100 rounded border flex items-center justify-center text-xs text-gray-400">
+                    Không có ảnh
+                  </div>
+                )}
+              </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">{post.title}</h3>
                 <div className="text-sm text-gray-500">
                   Ngày đăng: {dayjs(post.createdAt).format('DD/MM/YYYY')}
                 </div>
                 <div className="text-xs text-gray-600 mt-2">
-                  Trạng thái: {post.status}
+                  Trạng thái: {post.status === 'published' ? '✅ Đã xuất bản' : '📝 Nháp'}
                 </div>
               </div>
             </div>

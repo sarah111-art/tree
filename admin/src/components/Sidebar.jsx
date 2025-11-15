@@ -30,6 +30,7 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [bannerMenuOpen, setBannerMenuOpen] = useState(false);
   const [postMenuOpen, setPostMenuOpen] = useState(false);
+  const [aboutMenuOpen, setAboutMenuOpen] = useState(false);
 
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('adminInfo'));
@@ -221,6 +222,18 @@ const Sidebar = ({ isOpen, toggleSidebar, token, setToken }) => {
             ]}
           >
             Quản lý Bài Viết
+          </DropdownItem>
+
+          {/* About */}
+          <DropdownItem
+            icon={LucidePodcast}
+            isOpen={aboutMenuOpen}
+            onClick={() => setAboutMenuOpen(!aboutMenuOpen)}
+            subItems={[
+              { to: '/admin/about', label: '📦 Quản lý Giới thiệu' }
+            ]}
+          >
+            Quản lý Giới thiệu
           </DropdownItem>
 
           {/* Users */}

@@ -22,6 +22,7 @@ import AdminBannerList from './page/Banner/AddBanner';
 import BannerDashboard from './page/Banner/BannerDashboard';
 import AddBanner from './page/Banner/AddBanner';
 import PostList from './page/Post/PostList';
+import AboutList from './page/About/AboutList';
 import ActivityLog from './page/Staff/ActivityLog';
 import ContactList from './page/Contact/ContactList';
 import QRManager from './page/Payment/QRManager';
@@ -124,6 +125,7 @@ function App() {
               <Route path="/admin/banners/add" element={<AddBanner />} />
               <Route path="/admin/banners/dashboard" element={<BannerDashboard />} />
               <Route path="/admin/posts" element={<PostList />} />
+              <Route path="/admin/about" element={<AboutList />} />
               <Route path="/admin/users" element={<UserList />} />
               <Route path="/admin/users/:userId" element={<UserDetail />} />
               <Route path="/admin/activity-logs" element={<ActivityLog />} />
