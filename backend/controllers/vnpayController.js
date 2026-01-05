@@ -6,27 +6,25 @@ import dotenv from "dotenv";
 import querystring from "querystring";
 dotenv.config();
 
-// Hàm sortObject theo chuẩn VNPay (encode key và value, thay %20 bằng +)
+// Hàm sortObject theo chuẩn VNPay (sắp xếp keys, encode values và thay %20 bằng +)
 function sortObject(obj) {
   let sorted = {};
   let str = [];
   let key;
-  // Lấy tất cả keys, encode và sắp xếp
+  // Lấy tất cả keys và sắp xếp (không encode keys)
   for (key in obj) {
     if (obj.hasOwnProperty(key)) {
-      str.push(encodeURIComponent(key));
+      str.push(key);
     }
   }
   str.sort();
-  // Tạo object mới với keys đã encode, values đã encode và thay %20 bằng +
+  // Tạo object mới với keys gốc đã sắp xếp, values đã encode và thay %20 bằng +
   for (key = 0; key < str.length; key++) {
-    const encodedKey = str[key];
-    // Decode key để lấy key gốc
-    const originalKey = decodeURIComponent(encodedKey);
+    const originalKey = str[key];
     const value = obj[originalKey];
     // Chuyển đổi value thành string, encode và thay %20 bằng +
     const encodedValue = encodeURIComponent(String(value)).replace(/%20/g, "+");
-    sorted[encodedKey] = encodedValue;
+    sorted[originalKey] = encodedValue;
   }
   return sorted;
 }
