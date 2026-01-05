@@ -3,7 +3,25 @@
 import crypto from "crypto";
 import axios from "axios";
 import dotenv from "dotenv";
+import querystring from "querystring";
 dotenv.config();
+
+// Hàm sortObject theo chuẩn VNPay (encode key và value, thay %20 bằng +)
+function sortObject(obj) {
+  let sorted = {};
+  let str = [];
+  let key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      str.push(encodeURIComponent(key));
+    }
+  }
+  str.sort();
+  for (key = 0; key < str.length; key++) {
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+  }
+  return sorted;
+}
 
 // 📌 Tạo yêu cầu thanh toán VNPay
 export const createVNPayPayment = async (req, res) => {
@@ -40,14 +58,14 @@ export const createVNPayPayment = async (req, res) => {
     const orderType = "billpayment";
     const locale = "vn";
     const currCode = "VND";
-    const vnp_Params = {};
+    let vnp_Params = {};
 
     vnp_Params["vnp_Version"] = "2.1.0";
     vnp_Params["vnp_Command"] = "pay";
     vnp_Params["vnp_TmnCode"] = vnp_TmnCode;
     vnp_Params["vnp_Amount"] = amount * 100; // VNPay yêu cầu số tiền nhân 100
     vnp_Params["vnp_CurrCode"] = currCode;
-    vnp_Params["vnp_BankCode"] = "";
+    // Không thêm vnp_BankCode nếu rỗng (theo chuẩn VNPay)
     vnp_Params["vnp_TxnRef"] = orderId;
     vnp_Params["vnp_OrderInfo"] = orderInfo || `Thanh toan don hang ${orderId}`;
     vnp_Params["vnp_OrderType"] = orderType;
@@ -56,26 +74,15 @@ export const createVNPayPayment = async (req, res) => {
     vnp_Params["vnp_IpAddr"] = ipAddr;
     vnp_Params["vnp_CreateDate"] = createDate;
 
-    // Sắp xếp các tham số theo thứ tự a-z
-    const sortedParams = Object.keys(vnp_Params)
-      .sort()
-      .reduce((result, key) => {
-        result[key] = vnp_Params[key];
-        return result;
-      }, {});
+    // Sắp xếp và tạo chữ ký theo chuẩn VNPay
+    vnp_Params = sortObject(vnp_Params);
 
-    // Tạo chuỗi hash data
-    const signData = Object.keys(sortedParams)
-      .map((key) => {
-        return `${key}=${sortedParams[key]}`;
-      })
-      .join("&");
+    // Tạo chuỗi hash data bằng querystring.stringify với encode: false
+    const signData = querystring.stringify(vnp_Params, { encode: false });
 
     // Tạo chữ ký
     const hmac = crypto.createHmac("sha512", vnp_HashSecret);
-    const signed = hmac
-      .update(new Buffer.from(signData, "utf-8"))
-      .digest("hex");
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
     vnp_Params["vnp_SecureHash"] = signed;
 
     // Tạo URL thanh toán
@@ -194,7 +201,7 @@ export const handleVNPayCallback = async (req, res) => {
 // 📌 Tạo QR code VNPay
 export const createVNPayQR = async (req, res) => {
   try {
-    const { amount, orderId, orderInfo } = req.body;
+    const { amount, orderId, orderInfo, redirectUrl } = req.body;
 
     // Kiểm tra environment variables
     const vnp_TmnCode = process.env.VNPAY_TMN_CODE;
@@ -202,6 +209,7 @@ export const createVNPayQR = async (req, res) => {
     const vnp_Url =
       process.env.VNPAY_URL ||
       "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    const vnp_ReturnUrl = redirectUrl || process.env.VNPAY_RETURN_URL;
 
     // Log để debug
     console.log("🔍 VNPay Environment Variables Check:");
@@ -264,45 +272,35 @@ export const createVNPayQR = async (req, res) => {
       ipAddr = ipAddr.replace("::ffff:", "");
     }
 
-    const vnp_Params = {};
+    let vnp_Params = {};
     vnp_Params["vnp_Version"] = "2.1.0";
     vnp_Params["vnp_Command"] = "pay";
     vnp_Params["vnp_TmnCode"] = vnp_TmnCode;
     vnp_Params["vnp_Amount"] = amount * 100;
     vnp_Params["vnp_CurrCode"] = "VND";
+    // Không thêm vnp_BankCode nếu rỗng (theo chuẩn VNPay)
     vnp_Params["vnp_TxnRef"] = orderId;
     vnp_Params["vnp_OrderInfo"] = orderInfo || `Thanh toan don hang ${orderId}`;
     vnp_Params["vnp_OrderType"] = "billpayment";
     vnp_Params["vnp_Locale"] = "vn";
+    vnp_Params["vnp_ReturnUrl"] = vnp_ReturnUrl;
     vnp_Params["vnp_CreateDate"] = createDate;
     vnp_Params["vnp_IpAddr"] = ipAddr;
 
-    // Sắp xếp và tạo chữ ký
-    const sortedParams = Object.keys(vnp_Params)
-      .sort()
-      .reduce((result, key) => {
-        result[key] = vnp_Params[key];
-        return result;
-      }, {});
+    // Sắp xếp và tạo chữ ký theo chuẩn VNPay
+    vnp_Params = sortObject(vnp_Params);
 
-    const signData = Object.keys(sortedParams)
-      .map((key) => {
-        return `${key}=${sortedParams[key]}`;
-      })
-      .join("&");
+    // Tạo signData bằng querystring.stringify với encode: false (theo chuẩn VNPay)
+    const signData = querystring.stringify(vnp_Params, { encode: false });
 
     const hmac = crypto.createHmac("sha512", vnp_HashSecret);
-    const signed = hmac
-      .update(new Buffer.from(signData, "utf-8"))
-      .digest("hex");
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
     vnp_Params["vnp_SecureHash"] = signed;
 
-    // Tạo URL thanh toán VNPay
-    const paymentUrl = `${vnp_Url}?${Object.keys(vnp_Params)
-      .map((key) => {
-        return `${key}=${encodeURIComponent(vnp_Params[key])}`;
-      })
-      .join("&")}`;
+    // Tạo URL thanh toán VNPay (theo chuẩn VNPay)
+    const paymentUrl = `${vnp_Url}?${querystring.stringify(vnp_Params, {
+      encode: false,
+    })}`;
 
     // Tạo QR code string cho VNPay
     // LUÔN dùng paymentUrl trực tiếp (không dùng deep link)
@@ -312,12 +310,18 @@ export const createVNPayQR = async (req, res) => {
 
     // Log để debug
     console.log("🔍 VNPay QR Debug:");
-    console.log("CreateDate format:", createDate, "(phải là 14 ký tự: YYYYMMDDHHmmss)");
+    console.log(
+      "CreateDate format:",
+      createDate,
+      "(phải là 14 ký tự: YYYYMMDDHHmmss)"
+    );
     console.log("IP Address:", ipAddr);
     console.log("Payment URL length:", paymentUrl.length);
     console.log("Payment URL (first 100 chars):", paymentUrl.substring(0, 100));
     console.log("Merchant Code trong URL:", vnp_TmnCode);
-    console.log("⚠️ LƯU Ý: QR code LUÔN dùng paymentUrl trực tiếp (không dùng deep link)");
+    console.log(
+      "⚠️ LƯU Ý: QR code LUÔN dùng paymentUrl trực tiếp (không dùng deep link)"
+    );
 
     try {
       // Tạo QR code base64 - LUÔN dùng paymentUrl
@@ -348,8 +352,12 @@ export const createVNPayQR = async (req, res) => {
       console.log("📤 Trả về response với:");
       console.log("- qrString:", qrString.substring(0, 100) + "...");
       console.log("- paymentUrl:", paymentUrl.substring(0, 100) + "...");
-      console.log("⚠️ LƯU Ý: QR code chứa URL dài, một số app có thể không quét được");
-      console.log("💡 Giải pháp: Quét bằng App VNPay hoặc mở paymentUrl trực tiếp");
+      console.log(
+        "⚠️ LƯU Ý: QR code chứa URL dài, một số app có thể không quét được"
+      );
+      console.log(
+        "💡 Giải pháp: Quét bằng App VNPay hoặc mở paymentUrl trực tiếp"
+      );
 
       res.json({
         resultCode: 0,
@@ -364,8 +372,8 @@ export const createVNPayQR = async (req, res) => {
         debug: {
           urlLength: paymentUrl.length,
           merchantCode: vnp_TmnCode,
-          format: "URL trực tiếp (paymentUrl)"
-        }
+          format: "URL trực tiếp (paymentUrl)",
+        },
       });
     } catch (qrError) {
       console.error("❌ Lỗi tạo QR code:", qrError);
