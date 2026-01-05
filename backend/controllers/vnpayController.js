@@ -3,28 +3,22 @@
 import crypto from "crypto";
 import axios from "axios";
 import dotenv from "dotenv";
-import querystring from "querystring";
+import qs from "qs";
 dotenv.config();
 
-// Hàm sortObject theo chuẩn VNPay (sắp xếp keys, encode values và thay %20 bằng +)
+// Hàm sortObject theo chuẩn VNPay (encode key và value, thay %20 bằng +)
 function sortObject(obj) {
   let sorted = {};
   let str = [];
   let key;
-  // Lấy tất cả keys và sắp xếp (không encode keys)
   for (key in obj) {
     if (obj.hasOwnProperty(key)) {
-      str.push(key);
+      str.push(encodeURIComponent(key));
     }
   }
   str.sort();
-  // Tạo object mới với keys gốc đã sắp xếp, values đã encode và thay %20 bằng +
   for (key = 0; key < str.length; key++) {
-    const originalKey = str[key];
-    const value = obj[originalKey];
-    // Chuyển đổi value thành string, encode và thay %20 bằng +
-    const encodedValue = encodeURIComponent(String(value)).replace(/%20/g, "+");
-    sorted[originalKey] = encodedValue;
+    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
   }
   return sorted;
 }
@@ -93,20 +87,18 @@ export const createVNPayPayment = async (req, res) => {
     // Sắp xếp và tạo chữ ký theo chuẩn VNPay
     vnp_Params = sortObject(vnp_Params);
 
-    // Tạo chuỗi hash data bằng querystring.stringify với encode: false
-    const signData = querystring.stringify(vnp_Params, { encode: false });
+    // Tạo chuỗi hash data bằng qs.stringify với encode: false (theo chuẩn VNPay)
+    const signData = qs.stringify(vnp_Params, { encode: false });
 
     // Tạo chữ ký
     const hmac = crypto.createHmac("sha512", vnp_HashSecret);
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
     vnp_Params["vnp_SecureHash"] = signed;
 
-    // Tạo URL thanh toán
-    const paymentUrl = `${vnp_Url}?${Object.keys(vnp_Params)
-      .map((key) => {
-        return `${key}=${encodeURIComponent(vnp_Params[key])}`;
-      })
-      .join("&")}`;
+    // Tạo URL thanh toán (theo chuẩn VNPay)
+    const paymentUrl = `${vnp_Url}?${qs.stringify(vnp_Params, {
+      encode: false,
+    })}`;
 
     res.json({
       resultCode: 0,
@@ -132,26 +124,15 @@ export const handleVNPayCallback = async (req, res) => {
     delete vnp_Params["vnp_SecureHash"];
     delete vnp_Params["vnp_SecureHashType"];
 
-    // Sắp xếp các tham số theo thứ tự a-z
-    const sortedParams = Object.keys(vnp_Params)
-      .sort()
-      .reduce((result, key) => {
-        result[key] = vnp_Params[key];
-        return result;
-      }, {});
+    // Sắp xếp và tạo chữ ký theo chuẩn VNPay
+    vnp_Params = sortObject(vnp_Params);
 
-    // Tạo chuỗi hash data
-    const signData = Object.keys(sortedParams)
-      .map((key) => {
-        return `${key}=${sortedParams[key]}`;
-      })
-      .join("&");
+    // Tạo chuỗi hash data bằng qs.stringify với encode: false (theo chuẩn VNPay)
+    const signData = qs.stringify(vnp_Params, { encode: false });
 
     // Tạo chữ ký
     const hmac = crypto.createHmac("sha512", process.env.VNPAY_HASH_SECRET);
-    const signed = hmac
-      .update(new Buffer.from(signData, "utf-8"))
-      .digest("hex");
+    const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
     // Kiểm tra chữ ký
     if (secureHash === signed) {
@@ -316,15 +297,15 @@ export const createVNPayQR = async (req, res) => {
     // Sắp xếp và tạo chữ ký theo chuẩn VNPay
     vnp_Params = sortObject(vnp_Params);
 
-    // Tạo signData bằng querystring.stringify với encode: false (theo chuẩn VNPay)
-    const signData = querystring.stringify(vnp_Params, { encode: false });
+    // Tạo signData bằng qs.stringify với encode: false (theo chuẩn VNPay)
+    const signData = qs.stringify(vnp_Params, { encode: false });
 
     const hmac = crypto.createHmac("sha512", vnp_HashSecret);
     const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
     vnp_Params["vnp_SecureHash"] = signed;
 
     // Tạo URL thanh toán VNPay (theo chuẩn VNPay)
-    const paymentUrl = `${vnp_Url}?${querystring.stringify(vnp_Params, {
+    const paymentUrl = `${vnp_Url}?${qs.stringify(vnp_Params, {
       encode: false,
     })}`;
 
