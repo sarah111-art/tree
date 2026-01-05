@@ -11,14 +11,22 @@ function sortObject(obj) {
   let sorted = {};
   let str = [];
   let key;
+  // Lấy tất cả keys, encode và sắp xếp
   for (key in obj) {
     if (obj.hasOwnProperty(key)) {
       str.push(encodeURIComponent(key));
     }
   }
   str.sort();
+  // Tạo object mới với keys đã encode, values đã encode và thay %20 bằng +
   for (key = 0; key < str.length; key++) {
-    sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+    const encodedKey = str[key];
+    // Decode key để lấy key gốc
+    const originalKey = decodeURIComponent(encodedKey);
+    const value = obj[originalKey];
+    // Chuyển đổi value thành string, encode và thay %20 bằng +
+    const encodedValue = encodeURIComponent(String(value)).replace(/%20/g, "+");
+    sorted[encodedKey] = encodedValue;
   }
   return sorted;
 }
@@ -27,6 +35,16 @@ function sortObject(obj) {
 export const createVNPayPayment = async (req, res) => {
   try {
     const { amount, orderId, orderInfo, redirectUrl } = req.body;
+
+    // Validate và parse amount
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        resultCode: 1,
+        message: "Số tiền không hợp lệ",
+        error: "Amount must be a positive number",
+      });
+    }
 
     const vnp_TmnCode = process.env.VNPAY_TMN_CODE;
     const vnp_HashSecret = process.env.VNPAY_HASH_SECRET;
@@ -63,7 +81,7 @@ export const createVNPayPayment = async (req, res) => {
     vnp_Params["vnp_Version"] = "2.1.0";
     vnp_Params["vnp_Command"] = "pay";
     vnp_Params["vnp_TmnCode"] = vnp_TmnCode;
-    vnp_Params["vnp_Amount"] = amount * 100; // VNPay yêu cầu số tiền nhân 100
+    vnp_Params["vnp_Amount"] = Math.round(parsedAmount * 100); // Đảm bảo là số nguyên
     vnp_Params["vnp_CurrCode"] = currCode;
     // Không thêm vnp_BankCode nếu rỗng (theo chuẩn VNPay)
     vnp_Params["vnp_TxnRef"] = orderId;
@@ -203,6 +221,16 @@ export const createVNPayQR = async (req, res) => {
   try {
     const { amount, orderId, orderInfo, redirectUrl } = req.body;
 
+    // Validate và parse amount
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        resultCode: 1,
+        message: "Số tiền không hợp lệ",
+        error: "Amount must be a positive number",
+      });
+    }
+
     // Kiểm tra environment variables
     const vnp_TmnCode = process.env.VNPAY_TMN_CODE;
     const vnp_HashSecret = process.env.VNPAY_HASH_SECRET;
@@ -276,7 +304,7 @@ export const createVNPayQR = async (req, res) => {
     vnp_Params["vnp_Version"] = "2.1.0";
     vnp_Params["vnp_Command"] = "pay";
     vnp_Params["vnp_TmnCode"] = vnp_TmnCode;
-    vnp_Params["vnp_Amount"] = amount * 100;
+    vnp_Params["vnp_Amount"] = Math.round(parsedAmount * 100); // Đảm bảo là số nguyên
     vnp_Params["vnp_CurrCode"] = "VND";
     // Không thêm vnp_BankCode nếu rỗng (theo chuẩn VNPay)
     vnp_Params["vnp_TxnRef"] = orderId;
