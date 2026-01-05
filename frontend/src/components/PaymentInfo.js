@@ -5,15 +5,24 @@ const PaymentInfo = ({ type, qrInfo, dynamicQR, amount, customerName, loading })
     return new Intl.NumberFormat('vi-VN').format(amount);
   };
 
-  // Tạo QR code từ base64 string hoặc QR string
+  // Tạo QR code từ base64 string
+  // QUAN TRỌNG: qrCode từ backend là Base64 PNG image, KHÔNG phải QR text string
+  // Chỉ cần thêm prefix data:image/png;base64, và render như ảnh PNG
+  // KHÔNG được encode lại hoặc tạo QR mới từ base64 này
   const createQRImage = (qrCodeString) => {
+    if (!qrCodeString) return null;
+    
+    // Nếu đã có prefix data: thì trả về luôn
     if (qrCodeString.startsWith('data:')) {
-      return qrCodeString; // Đã là data URL
+      return qrCodeString;
     }
-    if (qrCodeString.includes('|')) {
-      // Đây là QR string, không phải base64
-      return null;
+    
+    // Nếu là QR text string (có chứa vnpay:// hoặc http://) thì không phải base64
+    if (qrCodeString.includes('vnpay://') || qrCodeString.startsWith('http')) {
+      return null; // Không phải base64 image
     }
+    
+    // Backend trả về base64 string thuần, thêm prefix để render như ảnh PNG
     return `data:image/png;base64,${qrCodeString}`;
   };
 
@@ -133,19 +142,32 @@ const PaymentInfo = ({ type, qrInfo, dynamicQR, amount, customerName, loading })
         ) : dynamicQR?.vnpay ? (
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-700 mb-3">Quét mã QR để chuyển tiền:</p>
+              <p className="text-sm text-gray-700 mb-2">Quét mã QR để thanh toán:</p>
+              <p className="text-xs text-gray-500 mb-3">
+                📱 Quét bằng <strong>Camera điện thoại</strong> hoặc <strong>App VNPay</strong>
+              </p>
               {dynamicQR.vnpay.qrCode ? (
                 <img
                   src={createQRImage(dynamicQR.vnpay.qrCode)}
-                  alt="QR VNPay"
-                  className="w-48 h-48 object-contain rounded-lg border-2 border-blue-300"
+                  alt="QR VNPay - Quét bằng Camera điện thoại hoặc App VNPay"
+                  className="w-64 h-64 object-contain rounded-lg border-2 border-blue-300 bg-white p-2"
                   onError={(e) => {
-                    if (dynamicQR.vnpay.qrString) {
+                    console.error('❌ Lỗi hiển thị QR code từ base64, fallback sang paymentUrl');
+                    // Fallback: nếu base64 không load được, tạo QR từ paymentUrl
+                    if (dynamicQR.vnpay.paymentUrl) {
+                      e.target.src = createQRFromString(dynamicQR.vnpay.paymentUrl);
+                    } else if (dynamicQR.vnpay.qrString && !dynamicQR.vnpay.qrString.startsWith('vnpay://')) {
                       e.target.src = createQRFromString(dynamicQR.vnpay.qrString);
                     }
                   }}
                 />
-              ) : dynamicQR.vnpay.qrString ? (
+              ) : dynamicQR.vnpay.paymentUrl ? (
+                <img
+                  src={createQRFromString(dynamicQR.vnpay.paymentUrl)}
+                  alt="QR VNPay"
+                  className="w-48 h-48 object-contain rounded-lg border-2 border-blue-300"
+                />
+              ) : dynamicQR.vnpay.qrString && !dynamicQR.vnpay.qrString.startsWith('vnpay://') ? (
                 <img
                   src={createQRFromString(dynamicQR.vnpay.qrString)}
                   alt="QR VNPay"
@@ -194,6 +216,40 @@ const PaymentInfo = ({ type, qrInfo, dynamicQR, amount, customerName, loading })
                   </div>
                 </div>
               )}
+              
+              {/* Nút mở app VNPay nếu có deep link */}
+              {dynamicQR.vnpay.deepLink && (
+                <div className="mt-3">
+                  <a
+                    href={dynamicQR.vnpay.deepLink}
+                    className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+                    onClick={(e) => {
+                      // Thử mở app, nếu không được thì mở paymentUrl
+                      const opened = window.open(dynamicQR.vnpay.deepLink, '_blank');
+                      if (!opened || opened.closed) {
+                        e.preventDefault();
+                        window.open(dynamicQR.vnpay.paymentUrl || dynamicQR.vnpay.qrString, '_blank');
+                      }
+                    }}
+                  >
+                    📱 Mở app VNPay để thanh toán
+                  </a>
+                </div>
+              )}
+              
+              {/* Nút mở thanh toán trên web nếu không có deep link */}
+              {!dynamicQR.vnpay.deepLink && dynamicQR.vnpay.paymentUrl && (
+                <div className="mt-3">
+                  <a
+                    href={dynamicQR.vnpay.paymentUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+                  >
+                    🌐 Mở trang thanh toán VNPay
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -204,7 +260,7 @@ const PaymentInfo = ({ type, qrInfo, dynamicQR, amount, customerName, loading })
         
         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
           <p className="text-sm text-yellow-800">
-            <strong>💡 Hướng dẫn:</strong> Mở app VNPay → Quét mã → Kiểm tra thông tin → Xác nhận thanh toán
+            <strong>💡 Hướng dẫn:</strong> Quét mã QR bằng <strong>Camera điện thoại</strong> hoặc <strong>App VNPay</strong> → Kiểm tra thông tin → Xác nhận thanh toán
           </p>
         </div>
       </div>
